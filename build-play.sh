@@ -18,4 +18,19 @@ scala_stm() {
   cd ../../
 }
 
+jerkson() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone https://github.com/codahale/jerkson.git
+    cd jerkson
+    git apply ../../jerkson.diff
+  else
+    cd build/jerkson
+  fi
+  sbt publish-local
+  cd ../../
+}
+
 scala_stm
+jerkson

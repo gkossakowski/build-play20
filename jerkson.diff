@@ -1,0 +1,54 @@
+diff --git a/build.sbt b/build.sbt
+new file mode 100644
+index 0000000..482043f
+--- /dev/null
++++ b/build.sbt
+@@ -0,0 +1,20 @@
++name := "jerkson"
++
++organization := "com.codahale"
++
++version := "0.5.1-SNAPSHOT"
++
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
++
++resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString)
++
++resolvers += ScalaToolsReleases
++
++resolvers += "repo.codahale.com" at "http://repo.codahale.com"
++
++libraryDependencies ++= Seq(
++  "org.codehaus.jackson" % "jackson-core-asl" % "1.9.3",
++  "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.3"
++)
++
++libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _)
+diff --git a/src/main/scala/com/codahale/jerkson/util/CaseClassSigParser.scala b/src/main/scala/com/codahale/jerkson/util/CaseClassSigParser.scala
+index 3895ea8..841473b 100644
+--- a/src/main/scala/com/codahale/jerkson/util/CaseClassSigParser.scala
++++ b/src/main/scala/com/codahale/jerkson/util/CaseClassSigParser.scala
+@@ -4,7 +4,8 @@ import com.codahale.jerkson.util.scalax.rules.scalasig._
+ import org.codehaus.jackson.`type`.JavaType
+ import org.codehaus.jackson.map.`type`.TypeFactory
+ import scala.reflect.ScalaSignature
+-import scala.reflect.generic.ByteCodecs
++//import scala.reflect.generic.ByteCodecs
++import scala.reflect.internal.pickling.ByteCodecs
+ 
+ class MissingPickledSig(clazz: Class[_]) extends Error("Failed to parse pickled Scala signature from: %s".format(clazz))
+ 
+diff --git a/src/main/scala/com/codahale/jerkson/util/scalax/rules/scalasig/ScalaSig.scala b/src/main/scala/com/codahale/jerkson/util/scalax/rules/scalasig/ScalaSig.scala
+index 0e12b42..1e75768 100644
+--- a/src/main/scala/com/codahale/jerkson/util/scalax/rules/scalasig/ScalaSig.scala
++++ b/src/main/scala/com/codahale/jerkson/util/scalax/rules/scalasig/ScalaSig.scala
+@@ -4,7 +4,8 @@ package rules
+ package scalasig
+ 
+ import ClassFileParser.{ConstValueIndex, Annotation}
+-import scala.reflect.generic.ByteCodecs
++//import scala.reflect.generic.ByteCodecs
++import scala.reflect.internal.pickling.ByteCodecs
+ 
+ object ScalaSigParser {
+ 
