@@ -32,5 +32,20 @@ jerkson() {
   cd ../../
 }
 
+scala_arm() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone https://github.com/jsuereth/scala-arm.git 
+    cd scala-arm
+    git apply ../../scala_arm.diff
+  else
+    cd build/scala-arm
+  fi
+  sbt publish-local
+  cd ../../
+}
+
 scala_stm
 jerkson
+scala_arm
