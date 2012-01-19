@@ -1,0 +1,13 @@
+diff --git a/build.sbt b/build.sbt
+index 08451eb..befb447 100644
+--- a/build.sbt
++++ b/build.sbt
+@@ -5,7 +5,7 @@ organization := "org.scala-tools"
+ 
+ version := "0.5-SNAPSHOT"
+ 
+-scalaVersion := "2.9.1"
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
+ 
+ crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1")
+ 
