@@ -1,102 +1,17 @@
-diff --git a/project/build.scala b/project/build.scala
-index 23f06ce..dbec870 100644
---- a/project/build.scala
-+++ b/project/build.scala
-@@ -1,72 +1,26 @@
- import sbt._
- import Keys._
--import com.jsuereth.sbtsite.SitePlugin.site
--import com.jsuereth.sbtsite.SiteKeys._
--import com.jsuereth.ghpages.GhPages.ghpages
--import com.jsuereth.git.GitPlugin.git
-+//import com.jsuereth.sbtsite.SitePlugin.site
-+//import com.jsuereth.sbtsite.SiteKeys._
-+//import com.jsuereth.ghpages.GhPages.ghpages
-+//import com.jsuereth.git.GitPlugin.git
+diff --git a/build.sbt b/build.sbt
+index 7870073..7124bd3 100644
+--- a/build.sbt
++++ b/build.sbt
+@@ -6,7 +6,11 @@ name := "scala-arm"
  
- object PluginDef extends Build {
+ version := "1.1"
  
-   val arm = (Project("scala-arm", file(".")) settings(
-+    scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: continuations plugin doesn't work without this
-     organization := "com.github.jsuereth.scala-arm",
-     name := "scala-arm",
-     version := "1.2-SNAPSHOT",
--    scalaVersion := "2.9.1",
--    crossScalaVersions := Seq("2.9.1"),
-+    scalaVersion := "2.10.0-virtualized-SNAPSHOT",
-+    resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
-     resolvers += "junit interface repo" at "https://repository.jboss.org/nexus/content/repositories/scala-tools-releases",
-     resolvers += "java.net repo" at "http://download.java.net/maven/2/",
-     libraryDependencies ++= dependencies,
-     autoCompilerPlugins := true,
-     addContinuations,
-     scalacOptions += "-P:continuations:enable"
--  ) settings(publishSettings:_*) settings(websiteSettings:_*))
--
--  def publishSettings: Seq[Setting[_]] = Seq(
--    // If we want on maven central, we need to be in maven style.
--    publishMavenStyle := true,
--    publishArtifact in Test := false,
--    // The Nexus repo we're publishing to.
--    publishTo <<= version { (v: String) =>
--      val nexus = "http://nexus.scala-tools.org/content/repositories/"
--      if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
--      else                             Some("releases"  at nexus + "releases/")
--    },
--    // Maven central cannot allow other repos.  We're ok here because the artifacts we
--    // we use externally are *optional* dependencies.
--    pomIncludeRepository := { x => false },
--    // Maven central wants some extra metadata to keep things 'clean'.
--    pomExtra := (
--	    <licenses>
--		    <license>
--			    <name>BSD-style</name>
--			    <url>http://www.opensource.org/licenses/bsd-license.php</url>
--			    <distribution>repo</distribution>
--		    </license>
--	    </licenses>
--      <scm>
--        <url>git@github.com:jsuereth/scala-arm.git</url>
--        <connection>scm:git:git@github.com:jsuereth/scala-arm.git</connection>
--      </scm>
--      <developers>
--        <developer>
--          <id>jsuereth</id>
--          <name>Josh Suereth</name>
--          <url>http://jsuereth.com</url>
--        </developer>
--      </developers>)
--  )
--
--  def websiteSettings: Seq[Setting[_]] = site.settings ++ ghpages.settings ++ Seq(
--    git.remoteRepo := "git@github.com:jsuereth/scala-arm.git",
--    siteMappings <++= (baseDirectory, target, streams) map { (dir, out, s) => 
--      val jekyllSrc = dir / "src" / "jekyll"
--      val jekyllOutput = out / "jekyll"
--      // Run Jekyll
--      sbt.Process(Seq("jekyll", jekyllOutput.getAbsolutePath), Some(jekyllSrc)).!;
--      // Figure out what was generated.
--      (jekyllOutput ** ("*.html" | "*.png" | "*.js" | "*.css" | "CNAME") x relativeTo(jekyllOutput))
--    }
--  )
-+  ))
+-scalaVersion := "2.9.1"
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
++
++scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")) // TODO: continuations plugin doesn't work without this
++
++resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString)
  
-   def addContinuations = libraryDependencies <<= (scalaVersion, libraryDependencies) apply { (v, d) =>
-     d :+ compilerPlugin("org.scala-lang.plugins" % "continuations" % v)
-diff --git a/project/project/Build.scala b/project/project/Build.scala
-index f8550f7..b6da9d7 100644
---- a/project/project/Build.scala
-+++ b/project/project/Build.scala
-@@ -1,9 +1,9 @@
- import sbt._
- object PluginDef extends Build {
-   override def projects = Seq(root)
--  lazy val root = Project("plugins", file(".")) dependsOn(ghpages, pgp)
--  lazy val ghpages = uri("git://github.com/jsuereth/xsbt-ghpages-plugin.git")
--  lazy val pgp = uri("git://github.com/sbt/xsbt-gpg-plugin.git")
-+  lazy val root = Project("plugins", file(".")) //dependsOn(ghpages, pgp)
-+  //lazy val ghpages = uri("git://github.com/jsuereth/xsbt-ghpages-plugin.git")
-+  //lazy val pgp = uri("git://github.com/sbt/xsbt-gpg-plugin.git")
+ autoCompilerPlugins := true
  
-   //lazy val lwm = uri("git://github.com/bmc/sbt-lwm.git#release-0.2.1")
-   //lazy val posterous = uri("git://github.com/n8han/posterous-sbt.git#0.3.2")

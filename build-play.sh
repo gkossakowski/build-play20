@@ -38,6 +38,7 @@ scala_arm() {
     cd build
     git clone https://github.com/jsuereth/scala-arm.git 
     cd scala-arm
+    git checkout 1.1
     git apply ../../scala_arm.diff
   else
     cd build/scala-arm
@@ -46,6 +47,21 @@ scala_arm() {
   cd ../../
 }
 
+scala_io() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone https://github.com/jesseeichar/scala-io.git
+    cd scala-io
+    git apply ../../scala_io.diff
+  else
+    cd build/scala-io
+  fi
+  sbt publish-local
+  cd ../../
+}
+
 scala_stm
 jerkson
 scala_arm
+scala_io
