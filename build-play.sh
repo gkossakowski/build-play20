@@ -11,7 +11,11 @@ scala_stm() {
     git clone https://github.com/nbronson/scala-stm.git
     cd scala-stm
     git apply ../../scala_stm.diff
+  else
+    cd build/scala-stm
   fi
+  sbt publish-local
+  cd ../../
 }
 
 scala_stm

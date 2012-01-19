@@ -1,8 +1,8 @@
 diff --git a/build.sbt b/build.sbt
-index 08451eb..befb447 100644
+index 08451eb..518015a 100644
 --- a/build.sbt
 +++ b/build.sbt
-@@ -5,7 +5,7 @@ organization := "org.scala-tools"
+@@ -5,12 +5,14 @@ organization := "org.scala-tools"
  
  version := "0.5-SNAPSHOT"
  
@@ -11,3 +11,11 @@ index 08451eb..befb447 100644
  
  crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1")
  
++resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString)
++
+ // 2.8.* -> 1.5.1, 2.9.* -> 1.6.1
+-libraryDependencies += ("org.scalatest" %% "scalatest" % "[1.5,)" % "test")
++//libraryDependencies += ("org.scalatest" %% "scalatest" % "[1.5,)" % "test")
+ 
+ // skip exhaustive tests
+ testOptions += Tests.Argument("-l", "slow")
