@@ -1,0 +1,583 @@
+diff --git a/build.sbt b/build.sbt
+index 13467e1..ab82962 100644
+--- a/build.sbt
++++ b/build.sbt
+@@ -1,6 +1,6 @@
+   seq(lsSettings:_*)
+ 
+-  (LsKeys.tags in LsKeys.lsync) := Seq("actors", "stm", "concurrency", "distributed", "fault-tolerance", "scala", "java", "futures", "dataflow", "remoting")
++  (LsKeys.tags in LsKeys.lsync) := Seq("actors")
+ 
+   (externalResolvers in LsKeys.lsync) := Seq("Akka Repository" at "http://akka.io/repository/")
+ 
+diff --git a/project/AkkaBuild.scala b/project/AkkaBuild.scala
+index 203564d..4cf8104 100644
+--- a/project/AkkaBuild.scala
++++ b/project/AkkaBuild.scala
+@@ -18,19 +18,21 @@ object AkkaBuild extends Build {
+   lazy val buildSettings = Seq(
+     organization := "com.typesafe.akka",
+     version      := "2.0-M2",
+-    scalaVersion := "2.9.1"
++    scalaVersion := "2.10.0-virtualized-SNAPSHOT"
+   )
+ 
+   lazy val akka = Project(
+     id = "akka",
+     base = file("."),
+     settings = parentSettings ++ Release.settings ++ Unidoc.settings ++ Rstdoc.settings ++ Publish.versionSettings ++ Dist.settings ++ Seq(
++      scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
++      resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
+       parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", "true").toBoolean,
+-      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository",
+-      Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
+-      Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
++      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository"
++      //Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
++      //Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
+     ),
+-    aggregate = Seq(actor, testkit, actorTests, remote, slf4j, agent, transactor, mailboxes, kernel, akkaSbtPlugin, samples, tutorials, docs)
++    aggregate = Seq(actor, slf4j)
+   )
+ 
+   lazy val actor = Project(
+@@ -45,72 +47,72 @@ object AkkaBuild extends Build {
+     )
+   )
+ 
+-  lazy val testkit = Project(
+-    id = "akka-testkit",
+-    base = file("akka-testkit"),
+-    dependencies = Seq(actor),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.testkit
+-    )
+-  )
++  // lazy val testkit = Project(
++  //   id = "akka-testkit",
++  //   base = file("akka-testkit"),
++  //   dependencies = Seq(actor),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.testkit
++  //   )
++  // )
+ 
+-  lazy val actorTests = Project(
+-    id = "akka-actor-tests",
+-    base = file("akka-actor-tests"),
+-    dependencies = Seq(testkit % "compile;test->test"),
+-    settings = defaultSettings ++ Seq(
+-      autoCompilerPlugins := true,
+-      libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
+-      scalacOptions += "-P:continuations:enable",
+-      libraryDependencies ++= Dependencies.actorTests
+-    )
+-  )
++  // lazy val actorTests = Project(
++  //   id = "akka-actor-tests",
++  //   base = file("akka-actor-tests"),
++  //   dependencies = Seq(testkit % "compile;test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     autoCompilerPlugins := true,
++  //     libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
++  //     scalacOptions += "-P:continuations:enable",
++  //     libraryDependencies ++= Dependencies.actorTests
++  //   )
++  // )
+ 
+-  lazy val remote = Project(
+-    id = "akka-remote",
+-    base = file("akka-remote"),
+-    dependencies = Seq(actor, actorTests % "test->test", testkit % "test->test"),
+-    settings = defaultSettings ++ multiJvmSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.cluster,
+-      // disable parallel tests
+-      parallelExecution in Test := false,
+-      extraOptions in MultiJvm <<= (sourceDirectory in MultiJvm) { src =>
+-        (name: String) => (src ** (name + ".conf")).get.headOption.map("-Dakka.config=" + _.absolutePath).toSeq
+-      },
+-      scalatestOptions in MultiJvm := Seq("-r", "org.scalatest.akka.QuietReporter"),
+-      jvmOptions in MultiJvm := {
+-        if (getBoolean("sbt.log.noformat")) Seq("-Dakka.test.nocolor=true") else Nil
+-      },
+-      test in Test <<= (test in Test) dependsOn (test in MultiJvm)
+-    )
+-  ) configs (MultiJvm)
++  // lazy val remote = Project(
++  //   id = "akka-remote",
++  //   base = file("akka-remote"),
++  //   dependencies = Seq(actor, actorTests % "test->test", testkit % "test->test"),
++  //   settings = defaultSettings ++ multiJvmSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.cluster,
++  //     // disable parallel tests
++  //     parallelExecution in Test := false,
++  //     extraOptions in MultiJvm <<= (sourceDirectory in MultiJvm) { src =>
++  //       (name: String) => (src ** (name + ".conf")).get.headOption.map("-Dakka.config=" + _.absolutePath).toSeq
++  //     },
++  //     scalatestOptions in MultiJvm := Seq("-r", "org.scalatest.akka.QuietReporter"),
++  //     jvmOptions in MultiJvm := {
++  //       if (getBoolean("sbt.log.noformat")) Seq("-Dakka.test.nocolor=true") else Nil
++  //     },
++  //     test in Test <<= (test in Test) dependsOn (test in MultiJvm)
++  //   )
++  // ) configs (MultiJvm)
+ 
+   lazy val slf4j = Project(
+     id = "akka-slf4j",
+     base = file("akka-slf4j"),
+-    dependencies = Seq(actor, testkit % "test->test"),
++    dependencies = Seq(actor),
+     settings = defaultSettings ++ Seq(
+       libraryDependencies ++= Dependencies.slf4j
+     )
+   )
+ 
+-  lazy val agent = Project(
+-    id = "akka-agent",
+-    base = file("akka-agent"),
+-    dependencies = Seq(actor, testkit % "test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.agent
+-    )
+-  )
++  // lazy val agent = Project(
++  //   id = "akka-agent",
++  //   base = file("akka-agent"),
++  //   dependencies = Seq(actor, testkit % "test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.agent
++  //   )
++  // )
+ 
+-  lazy val transactor = Project(
+-    id = "akka-transactor",
+-    base = file("akka-transactor"),
+-    dependencies = Seq(actor, testkit % "test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.transactor
+-    )
+-  )
++  // lazy val transactor = Project(
++  //   id = "akka-transactor",
++  //   base = file("akka-transactor"),
++  //   dependencies = Seq(actor, testkit % "test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.transactor
++  //   )
++  // )
+ 
+   // lazy val amqp = Project(
+   //   id = "akka-amqp",
+@@ -121,173 +123,173 @@ object AkkaBuild extends Build {
+   //   )
+   // )
+ 
+-  lazy val mailboxes = Project(
+-    id = "akka-durable-mailboxes",
+-    base = file("akka-durable-mailboxes"),
+-    settings = parentSettings,
+-    aggregate = Seq(mailboxesCommon, fileMailbox, mongoMailbox, redisMailbox, beanstalkMailbox, zookeeperMailbox)
+-  )
++  // lazy val mailboxes = Project(
++  //   id = "akka-durable-mailboxes",
++  //   base = file("akka-durable-mailboxes"),
++  //   settings = parentSettings,
++  //   aggregate = Seq(mailboxesCommon, fileMailbox, mongoMailbox, redisMailbox, beanstalkMailbox, zookeeperMailbox)
++  // )
+ 
+-  lazy val mailboxesCommon = Project(
+-    id = "akka-mailboxes-common",
+-    base = file("akka-durable-mailboxes/akka-mailboxes-common"),
+-    dependencies = Seq(remote, testkit % "compile;test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.mailboxes
+-    )
+-  )
++  // lazy val mailboxesCommon = Project(
++  //   id = "akka-mailboxes-common",
++  //   base = file("akka-durable-mailboxes/akka-mailboxes-common"),
++  //   dependencies = Seq(remote, testkit % "compile;test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.mailboxes
++  //   )
++  // )
+ 
+-  val testBeanstalkMailbox = SettingKey[Boolean]("test-beanstalk-mailbox")
++  // val testBeanstalkMailbox = SettingKey[Boolean]("test-beanstalk-mailbox")
+ 
+-  lazy val beanstalkMailbox = Project(
+-    id = "akka-beanstalk-mailbox",
+-    base = file("akka-durable-mailboxes/akka-beanstalk-mailbox"),
+-    dependencies = Seq(mailboxesCommon % "compile;test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.beanstalkMailbox,
+-      testBeanstalkMailbox := false,
+-      testOptions in Test <+= testBeanstalkMailbox map { test => Tests.Filter(s => test) }
+-    )
+-  )
+-
+-  lazy val fileMailbox = Project(
+-    id = "akka-file-mailbox",
+-    base = file("akka-durable-mailboxes/akka-file-mailbox"),
+-    dependencies = Seq(mailboxesCommon % "compile;test->test", testkit % "test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.fileMailbox
+-    )
+-  )
++  // lazy val beanstalkMailbox = Project(
++  //   id = "akka-beanstalk-mailbox",
++  //   base = file("akka-durable-mailboxes/akka-beanstalk-mailbox"),
++  //   dependencies = Seq(mailboxesCommon % "compile;test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.beanstalkMailbox,
++  //     testBeanstalkMailbox := false,
++  //     testOptions in Test <+= testBeanstalkMailbox map { test => Tests.Filter(s => test) }
++  //   )
++  // )
+ 
+-  val testRedisMailbox = SettingKey[Boolean]("test-redis-mailbox")
++  // lazy val fileMailbox = Project(
++  //   id = "akka-file-mailbox",
++  //   base = file("akka-durable-mailboxes/akka-file-mailbox"),
++  //   dependencies = Seq(mailboxesCommon % "compile;test->test", testkit % "test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.fileMailbox
++  //   )
++  // )
+ 
+-  lazy val redisMailbox = Project(
+-    id = "akka-redis-mailbox",
+-    base = file("akka-durable-mailboxes/akka-redis-mailbox"),
+-    dependencies = Seq(mailboxesCommon % "compile;test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.redisMailbox,
+-      testRedisMailbox := false,
+-      testOptions in Test <+= testRedisMailbox map { test => Tests.Filter(s => test) }
+-    )
+-  )
++  // val testRedisMailbox = SettingKey[Boolean]("test-redis-mailbox")
+ 
+-  lazy val zookeeperMailbox = Project(
+-    id = "akka-zookeeper-mailbox",
+-    base = file("akka-durable-mailboxes/akka-zookeeper-mailbox"),
+-    dependencies = Seq(mailboxesCommon % "compile;test->test", testkit % "test"),
+-    settings = defaultSettings  ++ Seq(
+-      libraryDependencies ++= Dependencies.zookeeperMailbox
+-    )
+-  )
++  // lazy val redisMailbox = Project(
++  //   id = "akka-redis-mailbox",
++  //   base = file("akka-durable-mailboxes/akka-redis-mailbox"),
++  //   dependencies = Seq(mailboxesCommon % "compile;test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.redisMailbox,
++  //     testRedisMailbox := false,
++  //     testOptions in Test <+= testRedisMailbox map { test => Tests.Filter(s => test) }
++  //   )
++  // )
+ 
+-  val testMongoMailbox = SettingKey[Boolean]("test-mongo-mailbox")
++  // lazy val zookeeperMailbox = Project(
++  //   id = "akka-zookeeper-mailbox",
++  //   base = file("akka-durable-mailboxes/akka-zookeeper-mailbox"),
++  //   dependencies = Seq(mailboxesCommon % "compile;test->test", testkit % "test"),
++  //   settings = defaultSettings  ++ Seq(
++  //     libraryDependencies ++= Dependencies.zookeeperMailbox
++  //   )
++  // )
+ 
+-  lazy val mongoMailbox = Project(
+-    id = "akka-mongo-mailbox",
+-    base = file("akka-durable-mailboxes/akka-mongo-mailbox"),
+-    dependencies = Seq(mailboxesCommon % "compile;test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.mongoMailbox,
+-      testMongoMailbox := false,
+-      testOptions in Test <+= testMongoMailbox map { test => Tests.Filter(s => test) }
+-    )
+-  )
++  // val testMongoMailbox = SettingKey[Boolean]("test-mongo-mailbox")
+ 
+-  // lazy val spring = Project(
+-  //   id = "akka-spring",
+-  //   base = file("akka-spring"),
+-  //   dependencies = Seq(cluster, camel),
++  // lazy val mongoMailbox = Project(
++  //   id = "akka-mongo-mailbox",
++  //   base = file("akka-durable-mailboxes/akka-mongo-mailbox"),
++  //   dependencies = Seq(mailboxesCommon % "compile;test->test"),
+   //   settings = defaultSettings ++ Seq(
+-  //     libraryDependencies ++= Dependencies.spring
++  //     libraryDependencies ++= Dependencies.mongoMailbox,
++  //     testMongoMailbox := false,
++  //     testOptions in Test <+= testMongoMailbox map { test => Tests.Filter(s => test) }
+   //   )
+   // )
+ 
+-  lazy val kernel = Project(
+-    id = "akka-kernel",
+-    base = file("akka-kernel"),
+-    dependencies = Seq(actor, testkit % "test->test"),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.kernel
+-    )
+-  )
++  // // lazy val spring = Project(
++  // //   id = "akka-spring",
++  // //   base = file("akka-spring"),
++  // //   dependencies = Seq(cluster, camel),
++  // //   settings = defaultSettings ++ Seq(
++  // //     libraryDependencies ++= Dependencies.spring
++  // //   )
++  // // )
++
++  // lazy val kernel = Project(
++  //   id = "akka-kernel",
++  //   base = file("akka-kernel"),
++  //   dependencies = Seq(actor, testkit % "test->test"),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.kernel
++  //   )
++  // )
+ 
+-  lazy val akkaSbtPlugin = Project(
+-    id = "akka-sbt-plugin",
+-    base = file("akka-sbt-plugin"),
+-    settings = defaultSettings ++ Seq(
+-      sbtPlugin := true
+-    )
+-  )
++  // lazy val akkaSbtPlugin = Project(
++  //   id = "akka-sbt-plugin",
++  //   base = file("akka-sbt-plugin"),
++  //   settings = defaultSettings ++ Seq(
++  //     sbtPlugin := true
++  //   )
++  // )
+ 
+-  lazy val samples = Project(
+-    id = "akka-samples",
+-    base = file("akka-samples"),
+-    settings = parentSettings,
+-    aggregate = Seq(fsmSample, helloSample, helloKernelSample, remoteSample)
+-  )
++  // lazy val samples = Project(
++  //   id = "akka-samples",
++  //   base = file("akka-samples"),
++  //   settings = parentSettings,
++  //   aggregate = Seq(fsmSample, helloSample, helloKernelSample, remoteSample)
++  // )
+ 
+-  lazy val fsmSample = Project(
+-    id = "akka-sample-fsm",
+-    base = file("akka-samples/akka-sample-fsm"),
+-    dependencies = Seq(actor),
+-    settings = defaultSettings
+-  )
++  // lazy val fsmSample = Project(
++  //   id = "akka-sample-fsm",
++  //   base = file("akka-samples/akka-sample-fsm"),
++  //   dependencies = Seq(actor),
++  //   settings = defaultSettings
++  // )
+ 
+-  lazy val helloSample = Project(
+-    id = "akka-sample-hello",
+-    base = file("akka-samples/akka-sample-hello"),
+-    dependencies = Seq(actor),
+-    settings = defaultSettings
+-  )
++  // lazy val helloSample = Project(
++  //   id = "akka-sample-hello",
++  //   base = file("akka-samples/akka-sample-hello"),
++  //   dependencies = Seq(actor),
++  //   settings = defaultSettings
++  // )
+ 
+-  lazy val helloKernelSample = Project(
+-    id = "akka-sample-hello-kernel",
+-    base = file("akka-samples/akka-sample-hello-kernel"),
+-    dependencies = Seq(kernel),
+-    settings = defaultSettings
+-  )
++  // lazy val helloKernelSample = Project(
++  //   id = "akka-sample-hello-kernel",
++  //   base = file("akka-samples/akka-sample-hello-kernel"),
++  //   dependencies = Seq(kernel),
++  //   settings = defaultSettings
++  // )
+ 
+-  lazy val remoteSample = Project(
+-    id = "akka-sample-remote",
+-    base = file("akka-samples/akka-sample-remote"),
+-    dependencies = Seq(actor, remote, kernel),
+-    settings = defaultSettings
+-  )
++  // lazy val remoteSample = Project(
++  //   id = "akka-sample-remote",
++  //   base = file("akka-samples/akka-sample-remote"),
++  //   dependencies = Seq(actor, remote, kernel),
++  //   settings = defaultSettings
++  // )
+ 
+-  lazy val tutorials = Project(
+-    id = "akka-tutorials",
+-    base = file("akka-tutorials"),
+-    settings = parentSettings,
+-    aggregate = Seq(firstTutorial)
+-  )
++  // lazy val tutorials = Project(
++  //   id = "akka-tutorials",
++  //   base = file("akka-tutorials"),
++  //   settings = parentSettings,
++  //   aggregate = Seq(firstTutorial)
++  // )
+ 
+-  lazy val firstTutorial = Project(
+-    id = "akka-tutorial-first",
+-    base = file("akka-tutorials/akka-tutorial-first"),
+-    dependencies = Seq(actor, testkit),
+-    settings = defaultSettings ++ Seq(
+-      libraryDependencies ++= Dependencies.tutorials
+-    )
+-  )
++  // lazy val firstTutorial = Project(
++  //   id = "akka-tutorial-first",
++  //   base = file("akka-tutorials/akka-tutorial-first"),
++  //   dependencies = Seq(actor, testkit),
++  //   settings = defaultSettings ++ Seq(
++  //     libraryDependencies ++= Dependencies.tutorials
++  //   )
++  // )
+ 
+-  //  lazy val secondTutorial = Project(
+-  //    id = "akka-tutorial-second",
+-  //    base = file("akka-tutorials/akka-tutorial-second"),
+-  //    dependencies = Seq(actor),
+-  //    settings = defaultSettings
+-  //  )
+-
+-  lazy val docs = Project(
+-    id = "akka-docs",
+-    base = file("akka-docs"),
+-    dependencies = Seq(actor, testkit % "test->test", remote, slf4j, agent, transactor, fileMailbox, mongoMailbox, redisMailbox, beanstalkMailbox, zookeeperMailbox),
+-    settings = defaultSettings ++ Seq(
+-      unmanagedSourceDirectories in Test <<= baseDirectory { _ ** "code" get },
+-      libraryDependencies ++= Dependencies.docs,
+-      unmanagedSourceDirectories in ScalariformKeys.format in Test <<= unmanagedSourceDirectories in Test
+-    )
+-  )
++  // //  lazy val secondTutorial = Project(
++  // //    id = "akka-tutorial-second",
++  // //    base = file("akka-tutorials/akka-tutorial-second"),
++  // //    dependencies = Seq(actor),
++  // //    settings = defaultSettings
++  // //  )
++
++  // lazy val docs = Project(
++  //   id = "akka-docs",
++  //   base = file("akka-docs"),
++  //   dependencies = Seq(actor, testkit % "test->test", remote, slf4j, agent, transactor, fileMailbox, mongoMailbox, redisMailbox, beanstalkMailbox, zookeeperMailbox),
++  //   settings = defaultSettings ++ Seq(
++  //     unmanagedSourceDirectories in Test <<= baseDirectory { _ ** "code" get },
++  //     libraryDependencies ++= Dependencies.docs,
++  //     unmanagedSourceDirectories in ScalariformKeys.format in Test <<= unmanagedSourceDirectories in Test
++  //   )
++  // )
+ 
+   // Settings
+ 
+@@ -306,6 +308,8 @@ object AkkaBuild extends Build {
+   val defaultExcludedTags = Seq("timing")
+ 
+   lazy val defaultSettings = baseSettings ++ formatSettings ++ Seq(
++    scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
++    resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
+     resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
+     resolvers += "Twitter Public Repo" at "http://maven.twttr.com", // This will be going away with com.mongodb.async's next release
+ 
+@@ -376,49 +380,49 @@ object AkkaBuild extends Build {
+ object Dependencies {
+   import Dependency._
+ 
+-  val testkit = Seq(Test.scalatest, Test.junit)
++  // val testkit = Seq(Test.scalatest, Test.junit)
+ 
+-  val actorTests = Seq(
+-    Test.junit, Test.scalatest, Test.commonsMath, Test.mockito,
+-    Test.scalacheck, protobuf, jacksonMapper, sjson
+-  )
++  // val actorTests = Seq(
++  //   Test.junit, Test.scalatest, Test.commonsMath, Test.mockito,
++  //   Test.scalacheck, protobuf, jacksonMapper, sjson
++  // )
+ 
+-  val cluster = Seq(
+-    bookkeeper, commonsCodec, commonsIo, guice, h2Lzf, jacksonCore, jacksonMapper, log4j, netty,
+-    protobuf, sjson, zkClient, zookeeper, zookeeperLock, Test.junit, Test.scalatest
+-  )
++  // val cluster = Seq(
++  //   bookkeeper, commonsCodec, commonsIo, guice, h2Lzf, jacksonCore, jacksonMapper, log4j, netty,
++  //   protobuf, sjson, zkClient, zookeeper, zookeeperLock, Test.junit, Test.scalatest
++  // )
+ 
+   val slf4j = Seq(slf4jApi)
+ 
+-  val agent = Seq(scalaStm, Test.scalatest, Test.junit)
++  // val agent = Seq(scalaStm, Test.scalatest, Test.junit)
+ 
+-  val transactor = Seq(scalaStm, Test.scalatest, Test.junit)
++  // val transactor = Seq(scalaStm, Test.scalatest, Test.junit)
+ 
+-  val amqp = Seq(rabbit, commonsIo, protobuf)
++  // val amqp = Seq(rabbit, commonsIo, protobuf)
+ 
+-  val mailboxes = Seq(Test.scalatest, Test.junit)
++  // val mailboxes = Seq(Test.scalatest, Test.junit)
+ 
+-  val fileMailbox = Seq(Test.scalatest, Test.junit)
++  // val fileMailbox = Seq(Test.scalatest, Test.junit)
+ 
+-  val beanstalkMailbox = Seq(beanstalk, Test.junit)
++  // val beanstalkMailbox = Seq(beanstalk, Test.junit)
+ 
+-  val redisMailbox = Seq(redis, Test.junit)
++  // val redisMailbox = Seq(redis, Test.junit)
+ 
+-  val mongoMailbox = Seq(mongoAsync, twttrUtilCore, Test.junit)
++  // val mongoMailbox = Seq(mongoAsync, twttrUtilCore, Test.junit)
+ 
+-  val zookeeperMailbox = Seq(zookeeper, Test.junit)
++  // val zookeeperMailbox = Seq(zookeeper, Test.junit)
+ 
+-  val spring = Seq(springBeans, springContext, Test.junit, Test.scalatest)
++  // val spring = Seq(springBeans, springContext, Test.junit, Test.scalatest)
+ 
+-  val kernel = Seq(Test.scalatest, Test.junit)
++  // val kernel = Seq(Test.scalatest, Test.junit)
+ 
+-  // TODO: resolve Jetty version conflict
+-  // val sampleCamel = Seq(camelCore, camelSpring, commonsCodec, Runtime.camelJms, Runtime.activemq, Runtime.springJms,
+-  //   Test.junit, Test.scalatest, Test.logback)
++  // // TODO: resolve Jetty version conflict
++  // // val sampleCamel = Seq(camelCore, camelSpring, commonsCodec, Runtime.camelJms, Runtime.activemq, Runtime.springJms,
++  // //   Test.junit, Test.scalatest, Test.logback)
+ 
+-  val tutorials = Seq(Test.scalatest, Test.junit)
++  // val tutorials = Seq(Test.scalatest, Test.junit)
+ 
+-  val docs = Seq(Test.scalatest, Test.junit)
++  // val docs = Seq(Test.scalatest, Test.junit)
+ }
+ 
+ object Dependency {
+@@ -502,7 +506,7 @@ object Dependency {
+     val junit       = "junit"                   % "junit"               % "4.5"        % "test" // Common Public License 1.0
+     val logback     = "ch.qos.logback"          % "logback-classic"     % V.Logback    % "test" // EPL 1.0 / LGPL 2.1
+     val mockito     = "org.mockito"             % "mockito-all"         % "1.8.1"      % "test" // MIT
+-    val scalatest   = "org.scalatest"           %% "scalatest"          % V.Scalatest  % "test" // ApacheV2
+-    val scalacheck  = "org.scala-tools.testing" %% "scalacheck"         % "1.9"        % "test" // New BSD
++//    val scalatest   = "org.scalatest"           %% "scalatest"          % V.Scalatest  % "test" // ApacheV2
++//    val scalacheck  = "org.scala-tools.testing" %% "scalacheck"         % "1.9"        % "test" // New BSD
+   }
+ }

@@ -62,7 +62,23 @@ scala_io() {
   cd ../../
 }
 
+akka() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone https://github.com/jboner/akka.git
+    cd akka
+    git checkout v2.0-M2
+    git apply ../../akka.diff
+  else
+    cd build/akka
+  fi
+  sbt publish-local
+  cd ../../
+}
+
 scala_stm
 jerkson
 scala_arm
 scala_io
+akka
