@@ -11,37 +11,57 @@ index 13467e1..ab82962 100644
    (externalResolvers in LsKeys.lsync) := Seq("Akka Repository" at "http://akka.io/repository/")
  
 diff --git a/project/AkkaBuild.scala b/project/AkkaBuild.scala
-index 203564d..4cf8104 100644
+index 203564d..be1ee3c 100644
 --- a/project/AkkaBuild.scala
 +++ b/project/AkkaBuild.scala
-@@ -18,19 +18,21 @@ object AkkaBuild extends Build {
+@@ -18,7 +18,20 @@ object AkkaBuild extends Build {
    lazy val buildSettings = Seq(
      organization := "com.typesafe.akka",
      version      := "2.0-M2",
 -    scalaVersion := "2.9.1"
 +    scalaVersion := "2.10.0-virtualized-SNAPSHOT"
++  )
++
++  lazy val localScalaSettings = Seq[Setting[_]](
++    scalaHome <<= (baseDirectory in ThisBuild) { f =>
++	  val props = new java.util.Properties()
++	  val pf = f / ".." / ".." / "local.properties"
++	  IO.load(props, pf)
++	  val x = props.getProperty("scala.virtualized.home")
++	  if (x == null)
++	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
++	  else Some(file(x))
++	},
++    resolvers += ScalaToolsSnapshots
    )
  
    lazy val akka = Project(
-     id = "akka",
+@@ -26,91 +39,90 @@ object AkkaBuild extends Build {
      base = file("."),
      settings = parentSettings ++ Release.settings ++ Unidoc.settings ++ Rstdoc.settings ++ Publish.versionSettings ++ Dist.settings ++ Seq(
-+      scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
-+      resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
        parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", "true").toBoolean,
 -      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository",
 -      Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
 -      Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
+-    ),
+-    aggregate = Seq(actor, testkit, actorTests, remote, slf4j, agent, transactor, mailboxes, kernel, akkaSbtPlugin, samples, tutorials, docs)
 +      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository"
 +      //Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
 +      //Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
-     ),
--    aggregate = Seq(actor, testkit, actorTests, remote, slf4j, agent, transactor, mailboxes, kernel, akkaSbtPlugin, samples, tutorials, docs)
++    ) ++ localScalaSettings,
 +    aggregate = Seq(actor, slf4j)
    )
  
    lazy val actor = Project(
-@@ -45,72 +47,72 @@ object AkkaBuild extends Build {
+     id = "akka-actor",
+     base = file("akka-actor"),
+     settings = defaultSettings ++ Seq(
+-      autoCompilerPlugins := true,
+-      libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
++      scalacOptions <+= scalaHome map (_.map(f => "-Xplugin:"+f+"/misc/scala-devel/plugins/continuations.jar").get),
+       scalacOptions += "-P:continuations:enable",
+       // to fix scaladoc generation
+       fullClasspath in doc in Compile <<= fullClasspath in Compile
      )
    )
  
@@ -168,7 +188,7 @@ index 203564d..4cf8104 100644
  
    // lazy val amqp = Project(
    //   id = "akka-amqp",
-@@ -121,173 +123,173 @@ object AkkaBuild extends Build {
+@@ -121,173 +133,173 @@ object AkkaBuild extends Build {
    //   )
    // )
  
@@ -487,16 +507,16 @@ index 203564d..4cf8104 100644
  
    // Settings
  
-@@ -306,6 +308,8 @@ object AkkaBuild extends Build {
+@@ -305,7 +317,7 @@ object AkkaBuild extends Build {
+ 
    val defaultExcludedTags = Seq("timing")
  
-   lazy val defaultSettings = baseSettings ++ formatSettings ++ Seq(
-+    scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
-+    resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
+-  lazy val defaultSettings = baseSettings ++ formatSettings ++ Seq(
++  lazy val defaultSettings = baseSettings ++ formatSettings ++ localScalaSettings ++ Seq(
      resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
      resolvers += "Twitter Public Repo" at "http://maven.twttr.com", // This will be going away with com.mongodb.async's next release
  
-@@ -376,49 +380,49 @@ object AkkaBuild extends Build {
+@@ -376,49 +388,49 @@ object AkkaBuild extends Build {
  object Dependencies {
    import Dependency._
  
@@ -571,7 +591,7 @@ index 203564d..4cf8104 100644
  }
  
  object Dependency {
-@@ -502,7 +506,7 @@ object Dependency {
+@@ -502,7 +514,7 @@ object Dependency {
      val junit       = "junit"                   % "junit"               % "4.5"        % "test" // Common Public License 1.0
      val logback     = "ch.qos.logback"          % "logback-classic"     % V.Logback    % "test" // EPL 1.0 / LGPL 2.1
      val mockito     = "org.mockito"             % "mockito-all"         % "1.8.1"      % "test" // MIT
