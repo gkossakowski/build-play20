@@ -40,7 +40,7 @@ index 980450a..c0e1ba7 100644
    }
  
 diff --git a/project/Build.scala b/project/Build.scala
-index 902084c..f71d59b 100644
+index 902084c..2df4921 100644
 --- a/project/Build.scala
 +++ b/project/Build.scala
 @@ -4,15 +4,15 @@ import Keys._
@@ -62,17 +62,25 @@ index 902084c..f71d59b 100644
      settings(sharedSettings ++ Seq(publishArtifact := false) :_*)
  
    // ----------------------- Samples Settings ----------------------- //
-@@ -41,7 +41,8 @@ object ScalaIoBuild extends Build {
+@@ -41,7 +41,16 @@ object ScalaIoBuild extends Build {
      </licenses>
  
    val sharedSettings = Seq[Setting[_]](
 -// 	scalaHome := Some(file("/Volumes/Box/ScalaProject/scala-full/dists/scala-2.9.2.r25667-b20110921211926")),
-+    scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
-+    resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
++    scalaHome <<= (baseDirectory in ThisBuild) { f =>
++	  val props = new java.util.Properties()
++	  val pf = f / ".." / ".." / "local.properties"
++	  IO.load(props, pf)
++	  val x = props.getProperty("scala.virtualized.home")
++	  if (x == null)
++	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
++	  else Some(file(x))
++	},
++    resolvers += ScalaToolsSnapshots,
      organization := BuildConstants.organization,
      version := BuildConstants.version,
      maxErrors := 20,
-@@ -78,14 +79,14 @@ object ScalaIoBuild extends Build {
+@@ -78,14 +87,14 @@ object ScalaIoBuild extends Build {
      
    // ----------------------- Performace Project ---------------------//
    
@@ -95,7 +103,7 @@ index 902084c..f71d59b 100644
    
  
    // ------------------------------ Docs Project ------------------------------ //
-@@ -118,4 +119,4 @@ object ScalaIoBuild extends Build {
+@@ -118,4 +127,4 @@ object ScalaIoBuild extends Build {
    lazy val webSiteProject:Project = Project("documentation", file("documentation")).
      dependsOn(fileProject, fileProject % "docs->compile").
      settings(sharedSettings ++ docsSettings :_*)
