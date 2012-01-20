@@ -53,6 +53,7 @@ scala_io() {
     cd build
     git clone https://github.com/jesseeichar/scala-io.git
     cd scala-io
+    git checkout 0.2.0
     git apply ../../scala_io.diff
   else
     cd build/scala-io
