@@ -1,82 +1,104 @@
-diff --cc file/src/main/scala/scalax/file/ramfs/RamPath.scala
-index 980450a,5a71734..0000000
+diff --git a/core/src/main/scala/scalax/io/CloseableIterator.scala b/core/src/main/scala/scalax/io/CloseableIterator.scala
+index cb7d212..c7279a2 100644
+--- a/core/src/main/scala/scalax/io/CloseableIterator.scala
++++ b/core/src/main/scala/scalax/io/CloseableIterator.scala
+@@ -39,10 +39,12 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
+   override def take(i:Int) = lslice(0,1)
+   override def zipAll[B, A1 >: A, B1 >: B](that: Iterator[B], thisElem: A1, thatElem: B1): CloseableIterator[(A1, B1)] =
+     Proxy(super.zipAll(that,thisElem,thatElem))
+-  override def zipWithIndex: CloseableIterator[(A, Int)] {var idx: Int} =
+-    new Proxy[(A, Int),Iterator[(A, Int)] {var idx: Int}](super.zipWithIndex) {
+-      var idx = wrapped.idx
+-    }
++  // override def zipWithIndex: CloseableIterator[(A, Int)] {var idx: Int} =
++  //   new Proxy[(A, Int),Iterator[(A, Int)] {var idx: Int}](super.zipWithIndex) {
++  //     var idx = wrapped.idx
++  //   }
++  override def zipWithIndex: CloseableIterator[(A, Int)] =
++    Proxy(super.zipWithIndex)
+   override def zip[B](that: Iterator[B]): CloseableIterator[(A, B)] =
+     Proxy(super.zip(that))
+ 
+@@ -117,4 +119,4 @@ object CloseableIterator {
+       protected def unsafeClose(handle: CloseableIterator[A]) = handle.close()
+       protected def open: CloseableIterator[A] = iter
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/file/src/main/scala/scalax/file/ramfs/RamPath.scala b/file/src/main/scala/scalax/file/ramfs/RamPath.scala
+index 980450a..c0e1ba7 100644
 --- a/file/src/main/scala/scalax/file/ramfs/RamPath.scala
 +++ b/file/src/main/scala/scalax/file/ramfs/RamPath.scala
-@@@ -136,9 -128,9 +136,9 @@@ class RamPath(relativeTo: String, val p
-        parent.node.collect {
-          case d: DirNode =>
-            d.children.map(n => parent / n.name)
- -        case p =>
- -          throw new NotDirectoryException(p+" is not a directory so descendants can not be called on it")
- -      }.toIterator.flatten
- +        case _ =>
- +          throw new AssertionError("This method should only be called on directories")
--       }.flatten.toList
-++      }.toList.flatten
-      })
-    }
-  
-diff --cc project/Build.scala
-index 902084c,d715e57..0000000
+@@ -138,7 +138,7 @@ class RamPath(relativeTo: String, val path: String, override val fileSystem: Ram
+           d.children.map(n => parent / n.name)
+         case _ =>
+           throw new AssertionError("This method should only be called on directories")
+-      }.flatten.toList
++      }.toList.flatten
+     })
+   }
+ 
+diff --git a/project/Build.scala b/project/Build.scala
+index 902084c..f71d59b 100644
 --- a/project/Build.scala
 +++ b/project/Build.scala
-@@@ -3,17 -3,17 +3,19 @@@ import Keys.
-  
-  object BuildConstants {
-    val organization = "com.github.scala-incubator.io"
- -  val version = "0.4-SNAPSHOT"
- +  val version = "0.2.0"
--   val armVersion = "0.3"
--   val scalaVersion = "2.9.1"
-++  //val armVersion = "0.3"
-++  //val scalaVersion = "2.9.1"
-+   val armVersion = "1.1"
-+   val scalaVersion = "2.10.0-virtualized-SNAPSHOT"
-  }
-  
-  object ScalaIoBuild extends Build {
-    // ----------------------- Root Project ----------------------- //
-  
-  	lazy val root:Project = Project("root", file(".")).
--     aggregate(coreProject,fileProject,perfProject,webSiteProject).
-+     aggregate(coreProject,fileProject).
- -    settings(sharedSettings ++ Seq(publishArtifact := false, name := "Scala IO") :_*)
- +    settings(sharedSettings ++ Seq(publishArtifact := false) :_*)
-  
-    // ----------------------- Samples Settings ----------------------- //
-  
-@@@ -78,14 -79,14 +81,14 @@@
-      
-    // ----------------------- Performace Project ---------------------//
-    
--   val perfSettings: Seq[Setting[_]] = Seq(
--     name := "scala-io-performace",
--     libraryDependencies += "com.github.jsuereth" %% "sperformance" % "0.1",
--     publishArtifact in Test := false
--   )
-- 	lazy val perfProject = Project("perf", file("perf")).
-- 	  settings (samplesSettings ++ sharedSettings ++ perfSettings : _*).
-- 	  dependsOn(coreProject,coreProject % "compile->test", fileProject)
-+   // val perfSettings: Seq[Setting[_]] = Seq(
- -  //   name := "scala-io-performance",
-++  //   name := "scala-io-performace",
-+   //   libraryDependencies += "com.github.jsuereth" %% "sperformance" % "0.1",
-+   //   publishArtifact in Test := false
-+   // )
- -  //       lazy val perfProject = Project("perf", file("perf")).
- -  //         settings (samplesSettings ++ sharedSettings ++ perfSettings : _*).
- -  //         dependsOn(coreProject,coreProject % "compile->test", fileProject % "compile->test")
-++  // lazy val perfProject = Project("perf", file("perf")).
-++  // settings (samplesSettings ++ sharedSettings ++ perfSettings : _*).
-++  // dependsOn(coreProject,coreProject % "compile->test", fileProject)
-    
-  
-    // ------------------------------ Docs Project ------------------------------ //
-@@@ -118,4 -119,5 +121,5 @@@
-    lazy val webSiteProject:Project = Project("documentation", file("documentation")).
-      dependsOn(fileProject, fileProject % "docs->compile").
-      settings(sharedSettings ++ docsSettings :_*)
-- }
- -    
-+ }
-++
+@@ -4,15 +4,15 @@ import Keys._
+ object BuildConstants {
+   val organization = "com.github.scala-incubator.io"
+   val version = "0.2.0"
+-  val armVersion = "0.3"
+-  val scalaVersion = "2.9.1"
++  val armVersion = "1.1"
++  val scalaVersion = "2.10.0-virtualized-SNAPSHOT"
+ }
+ 
+ object ScalaIoBuild extends Build {
+   // ----------------------- Root Project ----------------------- //
+ 
+ 	lazy val root:Project = Project("root", file(".")).
+-    aggregate(coreProject,fileProject,perfProject,webSiteProject).
++    aggregate(coreProject,fileProject).
+     settings(sharedSettings ++ Seq(publishArtifact := false) :_*)
+ 
+   // ----------------------- Samples Settings ----------------------- //
+@@ -41,7 +41,8 @@ object ScalaIoBuild extends Build {
+     </licenses>
+ 
+   val sharedSettings = Seq[Setting[_]](
+-// 	scalaHome := Some(file("/Volumes/Box/ScalaProject/scala-full/dists/scala-2.9.2.r25667-b20110921211926")),
++    scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")), // TODO: bug
++    resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString),
+     organization := BuildConstants.organization,
+     version := BuildConstants.version,
+     maxErrors := 20,
+@@ -78,14 +79,14 @@ object ScalaIoBuild extends Build {
+     
+   // ----------------------- Performace Project ---------------------//
+   
+-  val perfSettings: Seq[Setting[_]] = Seq(
+-    name := "scala-io-performace",
+-    libraryDependencies += "com.github.jsuereth" %% "sperformance" % "0.1",
+-    publishArtifact in Test := false
+-  )
+-	lazy val perfProject = Project("perf", file("perf")).
+-	  settings (samplesSettings ++ sharedSettings ++ perfSettings : _*).
+-	  dependsOn(coreProject,coreProject % "compile->test", fileProject)
++  // val perfSettings: Seq[Setting[_]] = Seq(
++  //   name := "scala-io-performace",
++  //   libraryDependencies += "com.github.jsuereth" %% "sperformance" % "0.1",
++  //   publishArtifact in Test := false
++  // )
++  //       lazy val perfProject = Project("perf", file("perf")).
++  //         settings (samplesSettings ++ sharedSettings ++ perfSettings : _*).
++  //         dependsOn(coreProject,coreProject % "compile->test", fileProject)
+   
+ 
+   // ------------------------------ Docs Project ------------------------------ //
+@@ -118,4 +119,4 @@ object ScalaIoBuild extends Build {
+   lazy val webSiteProject:Project = Project("documentation", file("documentation")).
+     dependsOn(fileProject, fileProject % "docs->compile").
+     settings(sharedSettings ++ docsSettings :_*)
+-}
+\ No newline at end of file
++}
