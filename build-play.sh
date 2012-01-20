@@ -10,6 +10,7 @@ scala_stm() {
     cd build
     git clone https://github.com/nbronson/scala-stm.git
     cd scala-stm
+ 	git checkout release-0.4
     git apply ../../scala_stm.diff
   else
     cd build/scala-stm
