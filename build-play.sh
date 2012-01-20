@@ -25,6 +25,7 @@ jerkson() {
     cd build
     git clone https://github.com/codahale/jerkson.git
     cd jerkson
+	git checkout v0.5.0
     git apply ../../jerkson.diff
   else
     cd build/jerkson
