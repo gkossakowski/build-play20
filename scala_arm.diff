@@ -1,17 +1,31 @@
 diff --git a/build.sbt b/build.sbt
-index 7870073..7124bd3 100644
+index 7870073..3bafae5 100644
 --- a/build.sbt
 +++ b/build.sbt
-@@ -6,7 +6,11 @@ name := "scala-arm"
+@@ -6,13 +6,21 @@ name := "scala-arm"
  
  version := "1.1"
  
 -scalaVersion := "2.9.1"
-+scalaVersion := "2.10.0-virtualized-SNAPSHOT"
-+
-+scalaHome := Some(file("/home/namin/code/scala-dev/build/pack/")) // TODO: continuations plugin doesn't work without this
-+
-+resolvers += MavenRepository("Local Maven Repo", (Path.userHome / ".m2" / "repository").asURL.toString)
++scalaHome <<= baseDirectory { f =>
++  //val scalaVirtualizedHome = SettingKey[File]("scala-virtualized-home","Location of local Scala virtualized checkout")
++  val props = new java.util.Properties()
++  IO.load(props, f / ".." / ".." / "local.properties")
++  val x = props.getProperty("scala.virtualized.home")
++  if (x == null)
++    sys.error("Did you forget to set scala.virtualized.home property in local.properties file?")
++  else Some(file(x))
++}
  
- autoCompilerPlugins := true
+-autoCompilerPlugins := true
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
+ 
+-libraryDependencies <<= (scalaVersion, libraryDependencies) { (ver, deps) =>
+-    deps :+ compilerPlugin("org.scala-lang.plugins" % "continuations" % ver)
+-}
++resolvers += ScalaToolsSnapshots
++
++scalacOptions <+= scalaHome map (_.map(f => "-Xplugin:"+f+"/misc/scala-devel/plugins/continuations.jar").get)
+ 
+ scalacOptions += "-P:continuations:enable"
  
