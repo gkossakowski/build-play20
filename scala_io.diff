@@ -40,7 +40,7 @@ index 980450a..c0e1ba7 100644
    }
  
 diff --git a/project/Build.scala b/project/Build.scala
-index 902084c..2df4921 100644
+index 902084c..35b06d0 100644
 --- a/project/Build.scala
 +++ b/project/Build.scala
 @@ -4,15 +4,15 @@ import Keys._
@@ -103,10 +103,25 @@ index 902084c..2df4921 100644
    
  
    // ------------------------------ Docs Project ------------------------------ //
-@@ -118,4 +127,4 @@ object ScalaIoBuild extends Build {
-   lazy val webSiteProject:Project = Project("documentation", file("documentation")).
-     dependsOn(fileProject, fileProject % "docs->compile").
-     settings(sharedSettings ++ docsSettings :_*)
+@@ -103,19 +112,4 @@ object ScalaIoBuild extends Build {
+ 
+     model.buildSite
+   }
+-  lazy val Docs = config("docs") extend (Compile)
+-  val docsSettings = inConfig(Docs)(Defaults.configSettings) ++ Seq[Setting[_]](
+-      scaladocOptions in Docs ++= Seq("-doc-title", "Scala IO"),//, "–doc-source-url", "https://raw.github.com/jesseeichar/scala-io/master/core/src/main/scala/"),
+-      resourceDirectory := new File("documentation/src/main/resources"),
+-      //siteDir <<= baseDirectory map { base => new File(base, "target/website") },
+-      siteDir := new File("/Users/jeichar/Sites/scala-io-doc/"),
+-      SiteTask,
+-      site in Docs <<= (site in Docs).dependsOn(doc in Docs),
+-      sources in Docs <<=
+-        (sources in (coreProject,Compile),
+-        sources in (fileProject,Compile)) map { _ ++ _ }
+-    )
+-  lazy val webSiteProject:Project = Project("documentation", file("documentation")).
+-    dependsOn(fileProject, fileProject % "docs->compile").
+-    settings(sharedSettings ++ docsSettings :_*)
 -}
 \ No newline at end of file
 +}
