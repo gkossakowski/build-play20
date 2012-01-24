@@ -79,8 +79,24 @@ akka() {
   cd ../../
 }
 
+Play20() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone git://github.com/playframework/Play20.git
+    cd Play20
+    # git checkout ...
+    # git apply ../../akka.diff
+  else
+    cd build/akka
+  fi
+  # sbt publish-local
+  cd ../../
+}
+
 scala_stm
 jerkson
 scala_arm
 scala_io
 akka
+Play20

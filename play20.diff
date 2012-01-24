@@ -1,0 +1,72 @@
+diff --git a/framework/project/Build.scala b/framework/project/Build.scala
+index 89f1849..e387612 100644
+--- a/framework/project/Build.scala
++++ b/framework/project/Build.scala
+@@ -63,7 +63,7 @@ object PlayBuild extends Build {
+       "Play-Test",
+       file("src/play-test"),
+       settings = buildSettings ++ Seq(
+-        libraryDependencies := testDependencies,
++        // libraryDependencies := testDependencies,
+         publishMavenStyle := false,
+         publishTo := Some(playRepository),
+         scalacOptions ++= Seq("-deprecation","-Xcheckinit", "-encoding", "utf8"),
+@@ -133,16 +133,29 @@ object PlayBuild extends Build {
+ 
+         val buildOrganization = "play"
+         val buildVersion      = "2.0-RC1-SNAPSHOT"
+-        val buildScalaVersion = "2.9.1"
++        val buildScalaVersion = "2.10.0-virtualized-SNAPSHOT"
+         val buildSbtVersion   = "0.11.2"
++        
++        lazy val localScalaSettings = Seq[Setting[_]](
++          scalaHome <<= (baseDirectory in ThisBuild) { f =>
++      	  val props = new java.util.Properties()
++      	  val pf = f / ".." / ".." / ".." / "local.properties"
++      	  IO.load(props, pf)
++      	  val x = props.getProperty("scala.virtualized.home")
++      	  if (x == null)
++      	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
++      	  else Some(file(x))
++      	}
++        )
+ 
+         val buildSettings = Defaults.defaultSettings ++ Seq (
+             organization   := buildOrganization,
+             version        := buildVersion,
+             scalaVersion   := buildScalaVersion,
+             logManager <<= extraLoggers(PlayLogManager.default),
+-            ivyLoggingLevel := UpdateLogging.DownloadOnly
+-        )
++            ivyLoggingLevel := UpdateLogging.DownloadOnly,
++            resolvers += ivyDefaultLocalRepository
++        ) ++ localScalaSettings
+ 
+     }
+ 
+@@ -164,6 +177,7 @@ object PlayBuild extends Build {
+         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
+         val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
+         val typesafe = "Typesafe Repository" at typesafeRepo
++        val ivyDefaultLocalRepository = Resolver.file("Default Ivy Local Repository", file("/Users/grek/.ivy2/local"))(Resolver.ivyStylePatterns)
+     }
+ 
+     object Dependencies {
+@@ -198,7 +212,7 @@ object PlayBuild extends Build {
+             "org.reflections"                   %    "reflections"              %   "0.9.5",
+             "javax.servlet"                     %    "javax.servlet-api"        %   "3.0.1",
+             "tyrex"                             %    "tyrex"                    %   "1.0.1",
+-            "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
++            // "org.specs2"                        %%   "specs2"                   %   "1.6.1"      %  "test",
+             "com.novocode"                      %    "junit-interface"          %   "0.7"        %  "test",
+             "fr.javafreelance.fluentlenium" % "fluentlenium" % "0.5.3" % "test"
+         )
+@@ -220,7 +234,7 @@ object PlayBuild extends Build {
+ 
+         val templatesDependencies = Seq(
+             "com.github.scala-incubator.io"     %%   "scala-io-file"            %   "0.2.0",
+-            "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
++            // "org.specs2"                        %%   "specs2"                   %   "1.6.1"    %   "test",
+             "org.scala-lang"                    %    "scala-compiler"           %   buildScalaVersion
+         )
+ 
