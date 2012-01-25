@@ -106,7 +106,7 @@ specs2() {
   else
     cd build/specs2
   fi
-  # sbt publish-local
+  sbt publish-local
   cd ../../
 }
 
