@@ -1,0 +1,32 @@
+diff --git a/specs2.sbt b/specs2.sbt
+index fc7f7ca..7b560fa 100644
+--- a/specs2.sbt
++++ b/specs2.sbt
+@@ -5,7 +5,17 @@ version := "1.6.1"
+ 
+ organization := "org.specs2"
+ 
+-scalaVersion := "2.9.1"
++scalaHome <<= baseDirectory { f =>
++  //val scalaVirtualizedHome = SettingKey[File]("scala-virtualized-home","Location of local Scala virtualized checkout")
++  val props = new java.util.Properties()
++  IO.load(props, f / ".." / ".." / "local.properties")
++  val x = props.getProperty("scala.virtualized.home")
++  if (x == null)
++    sys.error("Did you forget to set scala.virtualized.home property in local.properties file?")
++  else Some(file(x))
++}
++
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
+ 
+ crossScalaVersions := Seq("2.9.0", "2.9.0-1") ++ (1 to 4).map(i => "2.9.1.RC"+i)
+ 
+@@ -21,7 +31,7 @@ resolvers ++= Seq("snapshots-repo" at "http://scala-tools.org/repo-snapshots",
+ libraryDependencies ++= Seq(
+   "org.scala-tools.testing" %% "scalacheck" % "1.9" % "optional", 
+   "org.scala-tools.testing" % "test-interface" % "0.5" % "optional", 
+-  "org.specs2" %% "specs2-scalaz-core" % "6.0.1",
++  "org.specs2" % "specs2-scalaz-core_2.9.1" % "6.0.1",
+   "org.hamcrest" % "hamcrest-all" % "1.1" % "optional",
+   "org.mockito" % "mockito-all" % "1.8.5" % "optional",
+   "junit" % "junit" % "4.7" % "optional",

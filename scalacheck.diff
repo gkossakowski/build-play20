@@ -1,0 +1,85 @@
+diff --git a/build.sbt b/build.sbt
+new file mode 100644
+index 0000000..ccfa5f2
+--- /dev/null
++++ b/build.sbt
+@@ -0,0 +1,33 @@
++name := "scalacheck"
++
++version := "1.9"
++
++organization := "org.scala-tools.testing"
++
++scalaHome <<= baseDirectory { f =>
++  //val scalaVirtualizedHome = SettingKey[File]("scala-virtualized-home","Location of local Scala virtualized checkout")
++  val props = new java.util.Properties()
++  IO.load(props, f / ".." / ".." / "local.properties")
++  val x = props.getProperty("scala.virtualized.home")
++  if (x == null)
++    sys.error("Did you forget to set scala.virtualized.home property in local.properties file?")
++  else Some(file(x))
++}
++
++scalaVersion := "2.10.0-virtualized-SNAPSHOT"
++
++resolvers += ScalaToolsSnapshots
++
++crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2", "2.9.1.RC3", "2.9.1")
++
++libraryDependencies += "org.scala-tools.testing" %  "test-interface" % "0.5"
++
++javacOptions ++= Seq("-Xmx1024M")
++
++scalacOptions += "-deprecation"
++
++publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/snapshots/")
++
++// publishTo := Some("Scala Tools Nexus" at "http://nexus.scala-tools.org/content/repositories/releases/")
++
++credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+diff --git a/project/build.properties b/project/build.properties
+deleted file mode 100644
+index 9e0f5d8..0000000
+--- a/project/build.properties
++++ /dev/null
+@@ -1,7 +0,0 @@
+-project.name=scalacheck
+-project.organization=org.scala-tools.testing
+-project.version=1.9
+-sbt.version=0.7.5
+-def.scala.version=2.7.7
+-build.scala.versions=2.9.0
+-project.initialize=false
+diff --git a/project/build/ScalaCheckProject.scala b/project/build/ScalaCheckProject.scala
+deleted file mode 100644
+index aaf5cf3..0000000
+--- a/project/build/ScalaCheckProject.scala
++++ /dev/null
+@@ -1,27 +0,0 @@
+-import sbt._
+-
+-class ScalaCheckProject(info: ProjectInfo) extends DefaultProject(info) {
+-
+-  override def managedStyle = ManagedStyle.Maven
+-  override def packageDocsJar = defaultJarPath("-javadoc.jar")
+-  override def packageSrcJar= defaultJarPath("-sources.jar")
+-  override def packageToPublishActions =
+-    super.packageToPublishActions ++ Seq(packageDocs, packageSrc)
+-  override def deliverScalaDependencies = Nil
+-  override def documentOptions = Nil
+-
+-  val scalaToolsReleases = "Scala Tools Releases" at
+-    "http://nexus.scala-tools.org/content/repositories/releases/"
+-
+-  val scalaToolsSnapshots = "Scala Tools Snapshots" at
+-    "http://nexus.scala-tools.org/content/repositories/snapshots/"
+-
+-  val publishTo = scalaToolsReleases
+-
+-  val sourceArtifact = Artifact(artifactID, "src", "jar", Some("sources"), Nil, None)
+-  val docsArtifact = Artifact(artifactID, "docs", "jar", Some("javadoc"), Nil, None)
+-
+-  val depTestInterface = "org.scala-tools.testing" %  "test-interface" % "0.5"
+-
+-  Credentials(Path.userHome / ".ivy2" / ".credentials", log)
+-}

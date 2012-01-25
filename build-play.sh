@@ -79,6 +79,37 @@ akka() {
   cd ../../
 }
 
+scalacheck() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone git://github.com/rickynils/scalacheck.git
+    cd scalacheck
+    git checkout 1.9
+    git apply ../../scalacheck.diff
+  else
+    cd build/scalacheck
+  fi
+  sbt publish-local
+  cd ../../
+}
+
+
+specs2() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone git://github.com/etorreborre/specs2.git
+    cd specs2
+    git checkout SPECS2-1.6.1
+    git apply ../../specs2.diff
+  else
+    cd build/specs2
+  fi
+  # sbt publish-local
+  cd ../../
+}
+
 Play20() {
   if [ $FRESH ]
   then
@@ -99,4 +130,6 @@ jerkson
 scala_arm
 scala_io
 akka
+scalacheck
+specs2
 Play20
