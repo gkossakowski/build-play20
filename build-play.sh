@@ -115,14 +115,12 @@ Play20() {
   then
     cd build
     git clone git://github.com/playframework/Play20.git
-    cd Play20
-    # git checkout ...
-    # git apply ../../akka.diff
+    cd Play20/framework
+    git apply ../../../play20.diff
   else
-    cd build/akka
+    cd build/Play20/framework
   fi
-  # sbt publish-local
-  cd ../../
+  sh build
 }
 
 scala_stm
