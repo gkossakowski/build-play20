@@ -62,3 +62,22 @@ index 76aa7ca..4f18300 100644
 +scalaVersion := "2.10.0-virtualized-SNAPSHOT"
 +
 +resolvers += ScalaToolsSnapshots
+diff --git a/src/main/scala/scala/concurrent/stm/Ref.scala b/src/main/scala/scala/concurrent/stm/Ref.scala
+index 1e6aa6c..ba6fdd8 100644
+--- a/src/main/scala/scala/concurrent/stm/Ref.scala
++++ b/src/main/scala/scala/concurrent/stm/Ref.scala
+@@ -203,12 +203,12 @@ trait RefCompanion {
+    *  }}}
+    */
+   def apply[A](initialValue: A)(implicit om: OptManifest[A]): Ref[A] = om match {
+-    case m: AnyValManifest[_] => newPrimitiveRef(initialValue, m.asInstanceOf[AnyValManifest[A]])
++    case m: AnyValManifest[_] => newPrimitiveRef[AnyVal](initialValue.asInstanceOf[AnyVal], m.asInstanceOf[AnyValManifest[AnyVal]]).asInstanceOf[Ref[A]]
+     case m: ClassManifest[_] => factory.newRef(initialValue)(m.asInstanceOf[ClassManifest[A]])
+     case _ => factory.newRef[Any](initialValue).asInstanceOf[Ref[A]]
+   }
+ 
+-  private def newPrimitiveRef[A](initialValue: A, m: AnyValManifest[A]): Ref[A] = {
++  private def newPrimitiveRef[A <: AnyVal](initialValue: A, m: AnyValManifest[A]): Ref[A] = {
+     (m.newArray(0).asInstanceOf[AnyRef] match {
+       case _: Array[Int]     => apply(initialValue.asInstanceOf[Int])
+       case _: Array[Boolean] => apply(initialValue.asInstanceOf[Boolean])
