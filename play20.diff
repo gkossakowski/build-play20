@@ -1,5 +1,5 @@
 diff --git a/framework/project/Build.scala b/framework/project/Build.scala
-index 8138059..52f0fce 100644
+index 8138059..916df17 100644
 --- a/framework/project/Build.scala
 +++ b/framework/project/Build.scala
 @@ -80,7 +80,7 @@ object PlayBuild extends Build {
@@ -45,19 +45,6 @@ index 8138059..52f0fce 100644
  
      }
  
-@@ -154,9 +168,9 @@ object PlayBuild extends Build {
-         def isJar(f:java.io.File) = f.getName.endsWith(".jar")
- 
-         val sbtJars:Seq[java.io.File] = {
--            file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
--            file("sbt/boot/scala-" + buildScalaVersion + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
--            Seq(file("sbt/boot/scala-" + buildScalaVersion + "/lib/jline.jar"))
-+            file("sbt/boot/scala-" + "2.9.1" + "/org.scala-tools.sbt/sbt/" + buildSbtVersion).listFiles.filter(isJar) ++
-+            file("sbt/boot/scala-" + "2.9.1" + "/org.scala-tools.sbt/sbt/" + buildSbtVersion + "/xsbti").listFiles.filter(isJar) ++
-+            Seq(file("sbt/boot/scala-" + "2.9.1" + "/lib/jline.jar"))
-         }
- 
-     }
 @@ -165,6 +179,8 @@ object PlayBuild extends Build {
          val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
          val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
