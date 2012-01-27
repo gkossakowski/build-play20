@@ -132,6 +132,90 @@ index 8138059..52f0fce 100644
              val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
              val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
  
+diff --git a/framework/src/play/src/main/java/play/Application.java b/framework/src/play/src/main/java/play/Application.java
+index 7829dc8..511cd43 100644
+--- a/framework/src/play/src/main/java/play/Application.java
++++ b/framework/src/play/src/main/java/play/Application.java
+@@ -100,9 +100,10 @@ public class Application {
+      * @return a set of types names statifying the condition
+      */
+     public Set<String> getTypesAnnotatedWith(String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
+-        return scala.collection.JavaConverters.setAsJavaSetConverter(
+-            application.getTypesAnnotatedWith(packageName, annotation)
+-        ).asJava();
++        // return scala.collection.JavaConverters.setAsJavaSetConverter(
++        //     application.getTypesAnnotatedWith(packageName, annotation)
++        // ).asJava();
++        throw new RuntimeException("ouch!");
+     }
+     
+ }
+\ No newline at end of file
+diff --git a/framework/src/play/src/main/java/play/Configuration.java b/framework/src/play/src/main/java/play/Configuration.java
+index 9382e36..70bb492 100644
+--- a/framework/src/play/src/main/java/play/Configuration.java
++++ b/framework/src/play/src/main/java/play/Configuration.java
+@@ -93,7 +93,8 @@ public class Configuration {
+      * @return the set of keys available in this configuration
+      */
+     public Set<String> keys() {
+-        return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
++        // return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
++        throw new RuntimeException("ouch!");
+     }
+     
+     /**
+diff --git a/framework/src/play/src/main/java/play/i18n/Messages.java b/framework/src/play/src/main/java/play/i18n/Messages.java
+index c0f539d..2a7f781 100644
+--- a/framework/src/play/src/main/java/play/i18n/Messages.java
++++ b/framework/src/play/src/main/java/play/i18n/Messages.java
+@@ -32,7 +32,8 @@ public class Messages {
+     * @return the formatted message or a default rendering if the key wasn't defined
+     */
+     public String get(String key, Object... args) {
+-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
+-        return play.api.i18n.Messages.apply(key, scalaArgs);
++        // Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
++        // return play.api.i18n.Messages.apply(key, scalaArgs);
++        throw new RuntimeException("ouch!");
+     }
+ }
+diff --git a/framework/src/play/src/main/java/play/libs/Scala.java b/framework/src/play/src/main/java/play/libs/Scala.java
+index 8b6cbcb..44d9fb5 100644
+--- a/framework/src/play/src/main/java/play/libs/Scala.java
++++ b/framework/src/play/src/main/java/play/libs/Scala.java
+@@ -15,21 +15,25 @@ public class Scala {
+     }
+ 
+     public static <K,V> java.util.Map<K,V> asJava(scala.collection.Map<K,V> scalaMap) {
+-       return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
++       // return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
++        throw new RuntimeException("ouch!");
+     }
+     
+     public static <A,B> scala.collection.immutable.Map<A,B> asScala(Map<A,B> javaMap) {
+-        return play.utils.Conversions.newMap(
+-            scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
+-        );
++        // return play.utils.Conversions.newMap(
++        //     scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
++        // );
++        throw new RuntimeException("ouch!");
+     } 
+ 
+     public static <T> java.util.List<T> asJava(scala.collection.immutable.List<T> scalaList) {
+-       return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
++//       return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
++        throw new RuntimeException("ouch!");
+     }
+ 
+     public static <T> scala.collection.Seq<T> toSeq(java.util.List<T> list) {
+-        return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
++        // return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
++        throw new RuntimeException("ouch!");
+     }
+ 
+     public static <T> scala.collection.Seq<T> toSeq(T[] array) {
 diff --git a/framework/src/play/src/main/java/play/mvc/Results.java b/framework/src/play/src/main/java/play/mvc/Results.java
 index 1a1bf72..dabacdf 100644
 --- a/framework/src/play/src/main/java/play/mvc/Results.java

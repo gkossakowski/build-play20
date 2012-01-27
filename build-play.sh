@@ -115,7 +115,9 @@ Play20() {
   then
     cd build
     git clone git://github.com/playframework/Play20.git
+    (cd ..; sh fix-sbt.sh)
     cd Play20/framework
+    git checkout 154a2e4214b9fc38524d8a8a7e13d8cd4de91fb7
     git apply ../../../play20.diff
   else
     cd build/Play20/framework
