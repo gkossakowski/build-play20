@@ -110,6 +110,21 @@ specs2() {
   cd ../../
 }
 
+xsbt() {
+  if [ $FRESH ]
+  then
+    cd build
+    git clone git://github.com/harrah/xsbt.git
+    cd xsbt
+    git checkout v0.11.2
+    git apply ../../xsbt.diff
+  else
+    cd build/xsbt
+  fi
+  sbt publish-local
+  cd ../../
+}
+
 Play20() {
   if [ $FRESH ]
   then
@@ -133,4 +148,5 @@ scala_io
 akka
 scalacheck
 specs2
+xsbt
 Play20

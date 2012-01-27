@@ -1,0 +1,219 @@
+diff --git a/compile/Eval.scala b/compile/Eval.scala
+index a2ddcf9..c16860b 100644
+--- a/compile/Eval.scala
++++ b/compile/Eval.scala
+@@ -115,9 +115,9 @@ final class Eval(optionsNoncp: Seq[String], classpath: Seq[File], mkReporter: Se
+ 			Block(List(Apply(Select(Super(This(emptyTypeName), emptyTypeName), nme.CONSTRUCTOR), Nil)), Literal(Constant(())))
+ 		)
+ 
+-		def method = DefDef(NoMods, WrapValName, Nil, Nil, tpt, tree)
++		def method = DefDef(NoMods, newTermName(WrapValName), Nil, Nil, tpt, tree)
+ 		def moduleBody = Template(List(gen.scalaScalaObjectConstr), emptyValDef, List(emptyInit, method))
+-		def moduleDef = ModuleDef(NoMods, objectName, moduleBody)
++		def moduleDef = ModuleDef(NoMods, newTermName(objectName), moduleBody)
+ 		parser.makePackaging(0, emptyPkg, (imports :+ moduleDef).toList)
+ 	}
+ 
+diff --git a/compile/inc/Incremental.scala b/compile/inc/Incremental.scala
+index e6e8be4..ef6a878 100644
+--- a/compile/inc/Incremental.scala
++++ b/compile/inc/Incremental.scala
+@@ -60,7 +60,7 @@ object Incremental
+ 		new APIChanges(modifiedAPIs, changedNames)
+ 	}
+ 	def sameSource(a: Source, b: Source): Boolean  =  shortcutSameSource(a, b) || SameAPI(a,b)
+-	def shortcutSameSource(a: Source, b: Source): Boolean  =  !a.hash.isEmpty && !b.hash.isEmpty && sameCompilation(a.compilation, b.compilation) && (a.hash deepEquals b.hash)
++	def shortcutSameSource(a: Source, b: Source): Boolean  =  !a.hash.isEmpty && !b.hash.isEmpty && sameCompilation(a.compilation, b.compilation) && (a.hash.deep equals b.hash.deep)
+ 	def sameCompilation(a: Compilation, b: Compilation): Boolean  =  a.startTime == b.startTime && a.target == b.target
+ 
+ 	def changedInitial(entry: String => Option[File], sources: Set[File], previousAnalysis: Analysis, current: ReadStamps, forEntry: File => Option[Analysis])(implicit equivS: Equiv[Stamp]): InitialChanges =
+diff --git a/compile/interface/API.scala b/compile/interface/API.scala
+index f6f71cb..ae88ac8 100644
+--- a/compile/interface/API.scala
++++ b/compile/interface/API.scala
+@@ -260,7 +260,7 @@ final class API(val global: Global, val callback: xsbti.AnalysisCallback) extend
+ 			None
+ 	}
+ 	private def ignoreClass(sym: Symbol): Boolean =
+-		sym.isLocalClass || sym.isAnonymousClass || sym.fullName.endsWith(LocalChild)
++		sym.isLocalClass || sym.isAnonymousClass || sym.fullName.endsWith(LocalChild.toString)
+ 
+ 	// This filters private[this] vals/vars that were not in the original source.
+ 	//  The getter will be used for processing instead.
+diff --git a/main/Cross.scala b/main/Cross.scala
+index d170c13..7ec32fe 100644
+--- a/main/Cross.scala
++++ b/main/Cross.scala
+@@ -34,7 +34,7 @@ object Cross
+ 	}
+ 	def crossExclude(s: Setting[_]): Boolean =
+ 		s.key match {
+-			case ScopedKey( Scope(_, Global, Global, _), scalaHome.key | scalaVersion.key) => true
++			case ScopedKey( Scope(_, Global, Global, _), init) if init == scalaHome.key || init == scalaVersion.key => true
+ 			case _ => false
+ 		}
+ 
+@@ -58,4 +58,4 @@ object Cross
+ 	def requireSession[T](p: State => Parser[T]): State => Parser[T] = s =>
+ 		if(s get sessionSettings isEmpty) failure("No project loaded") else p(s)
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/main/Defaults.scala b/main/Defaults.scala
+index 8cc9722..11cda0b 100644
+--- a/main/Defaults.scala
++++ b/main/Defaults.scala
+@@ -456,7 +456,7 @@ object Defaults extends BuildCommon
+ 	@deprecated("Use `docSetting` instead", "0.11.0") def docTask: Initialize[Task[File]] =
+ 		(cacheDirectory, compileInputs, streams, docDirectory, configuration, scaladocOptions) map { (cache, in, s, target, config, options) =>
+ 			val d = new Scaladoc(in.config.maxErrors, in.compilers.scalac)
+-			val cp = in.config.classpath.toList - in.config.classesDirectory
++			val cp = in.config.classpath.toList filterNot (_ == in.config.classesDirectory)
+ 			d.cached(cache / "doc", nameForSrc(config.name), in.config.sources, cp, target, options, s.log)
+ 			target
+ 		}
+@@ -1198,4 +1198,4 @@ trait BuildCommon
+ 
+ 	def getPrevious[T](task: TaskKey[T]): Initialize[Task[Option[T]]] =
+ 		(state, resolvedScoped) map { (s, ctx) => getFromContext(task, ctx, s) }
+-}
+\ No newline at end of file
++}
+diff --git a/main/EvaluateTask.scala b/main/EvaluateTask.scala
+index 0107830..859015e 100644
+--- a/main/EvaluateTask.scala
++++ b/main/EvaluateTask.scala
+@@ -147,7 +147,7 @@ object EvaluateTask
+ 		case i => i
+ 	}
+ 	def convertCyclic(c: AnyCyclic): String =
+-		(c.caller, c.target) match {
++		(c.caller: Task[_], c.target: Task[_]) match {
+ 			case (caller: Task[_], target: Task[_]) =>
+ 				c.toString + (if(caller eq target) "(task: " + name(caller) + ")" else "(caller: " + name(caller) + ", target: " + name(target) + ")" )
+ 			case _ => c.toString
+diff --git a/main/actions/CacheIvy.scala b/main/actions/CacheIvy.scala
+index 528bd7e..72c2adc 100644
+--- a/main/actions/CacheIvy.scala
++++ b/main/actions/CacheIvy.scala
+@@ -65,14 +65,16 @@ object CacheIvy
+ 	implicit def updateReportFormat(implicit m: Format[String], cr: Format[ConfigurationReport], us: Format[UpdateStats]): Format[UpdateReport] =
+ 	{
+ 		import DefaultProtocol.FileFormat
+-		wrap[UpdateReport, (File, Seq[ConfigurationReport], UpdateStats)](rep => (rep.cachedDescriptor, rep.configurations, rep.stats), { case (cd, cs, stats) => new UpdateReport(cd, cs, stats) })
++		wrap[UpdateReport, (File, Seq[ConfigurationReport], UpdateStats)](rep => (rep.cachedDescriptor, rep.configurations, rep.stats), { case (cd, cs, stats) => new UpdateReport(cd, cs, stats) })(tuple3Format(FileFormat, seqFormat(cr), us))
+ 	}
+ 	implicit def updateStatsFormat: Format[UpdateStats] =
+ 		wrap[UpdateStats, (Long,Long,Long)]( us => (us.resolveTime, us.downloadTime, us.downloadSize), { case (rt, dt, ds) => new UpdateStats(rt, dt, ds, true) })
+ 	implicit def confReportFormat(implicit mf: Format[ModuleID], mr: Format[ModuleReport]): Format[ConfigurationReport] =
+-		wrap[ConfigurationReport, (String,Seq[ModuleReport],Seq[ModuleID])]( r => (r.configuration, r.modules, r.evicted), { case (c,m,v) => new ConfigurationReport(c,m,v) })
++		wrap[ConfigurationReport, (String,Seq[ModuleReport],Seq[ModuleID])]( r => (r.configuration, r.modules, r.evicted), 
++                                                                                    { case (c,m,v) => new ConfigurationReport(c,m,v) })(tuple3Format(StringFormat, seqFormat(mr), seqFormat(mf)))
+ 	implicit def moduleReportFormat(implicit f: Format[Artifact], ff: Format[File], mid: Format[ModuleID]): Format[ModuleReport] =
+-		wrap[ModuleReport, (ModuleID, Seq[(Artifact, File)], Seq[Artifact])]( m => (m.module, m.artifacts, m.missingArtifacts), { case (m, as, ms) => new ModuleReport(m, as,ms) })
++		wrap[ModuleReport, (ModuleID, Seq[(Artifact, File)], Seq[Artifact])]( m => (m.module, m.artifacts, m.missingArtifacts), 
++                                                                                     { case (m, as, ms) => new ModuleReport(m, as,ms) })(tuple3Format(mid, seqFormat(tuple2Format(f, ff)), seqFormat(f)))
+ 	implicit def artifactFormat(implicit sf: Format[String], of: Format[Seq[Configuration]], cf: Format[Configuration], uf: Format[Option[URL]]): Format[Artifact] =
+ 		wrap[Artifact, (String,String,String,Option[String],Seq[Configuration],Option[URL],Map[String,String])](
+ 			a => (a.name, a.`type`, a.extension, a.classifier, a.configurations.toSeq, a.url, a.extraAttributes),
+@@ -83,8 +85,10 @@ object CacheIvy
+ 	implicit def moduleIDFormat(implicit sf: Format[String], af: Format[Artifact], bf: Format[Boolean], ef: Format[ExclusionRule]): Format[ModuleID] =
+ 		wrap[ModuleID, ((String,String,String,Option[String]),(Boolean,Boolean,Seq[Artifact],Seq[ExclusionRule],Map[String,String],Boolean))](
+ 			m => ((m.organization,m.name,m.revision,m.configurations), (m.isChanging, m.isTransitive, m.explicitArtifacts, m.exclusions, m.extraAttributes, m.crossVersion)),
+-			{ case ((o,n,r,cs),(ch,t,as,excl,x,cv)) => ModuleID(o,n,r,cs,ch,t,as,excl,x,cv) }
+-		)
++			{ case ((o,n,r,cs),(ch,t,as,excl,x,cv)) => ModuleID(o,n,r,cs,ch,t,as,excl,x,cv) })(tuple2Format(
++                    tuple4Format(StringFormat, StringFormat, StringFormat, Cache.optionsAreFormat(StringFormat)),
++                    tuple6Format(BooleanFormat, BooleanFormat, seqFormat(af), seqFormat(ef), Cache.immutableMapFormat(StringFormat, StringFormat), BooleanFormat)))
++		
+ 
+ 	implicit def configurationFormat(implicit sf: Format[String]): Format[Configuration] =
+ 		wrap[Configuration, String](_.name, s => new Configuration(s))
+diff --git a/project/Sbt.scala b/project/Sbt.scala
+index 07f896f..1e72438 100644
+--- a/project/Sbt.scala
++++ b/project/Sbt.scala
+@@ -17,10 +17,11 @@ object Sbt extends Build
+ 		organization := "org.scala-tools.sbt",
+ 		version := "0.11.2",
+ 		publishArtifact in packageDoc := false,
+-		scalaVersion := "2.9.1",
++		scalaVersion := "2.10.0-virtualized-SNAPSHOT",
+ 		publishMavenStyle := false,
+ 		componentID := None,
+-		javacOptions in Compile ++= Seq("-target", "6", "-source", "6")
++		javacOptions in Compile ++= Seq("-target", "6", "-source", "6"),
++		resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
+ 	)
+ 
+ 	lazy val myProvided = config("provided") intransitive;
+diff --git a/tasks/Execute.scala b/tasks/Execute.scala
+index 9f4facb..68b3751 100644
+--- a/tasks/Execute.scala
++++ b/tasks/Execute.scala
+@@ -120,7 +120,7 @@ final class Execute[A[_] <: AnyRef](checkCycles: Boolean, triggers: Triggers[A])
+ 		results(node) = result
+ 		state(node) = Done
+ 		remove( reverse, node ) foreach { dep => notifyDone(node, dep) }
+-		callers.remove( node ).flatten.foreach { c => retire(c, callerResult(c, result)) }
++		callers.remove( node ).toSeq.flatten.foreach { c => retire(c, callerResult(c, result)) }
+ 		triggeredBy( node ) foreach { t => addChecked(t) }
+ 
+ 		post {
+@@ -314,7 +314,7 @@ final class Execute[A[_] <: AnyRef](checkCycles: Boolean, triggers: Triggers[A])
+ 	{
+ 		if(node eq target) cyclic(node, target, "Cannot call self")
+ 		val all = IDSet.create[A[T]]
+-		def allCallers(n: A[T]): Unit = (all process n)(()) { callers.get(n).flatten.foreach(allCallers) }
++		def allCallers(n: A[T]): Unit = (all process n)(()) { callers.get(n).toSeq.flatten.foreach(allCallers) }
+ 		allCallers(node)
+ 		if(all contains target) cyclic(node, target, "Cyclic reference")
+ 	}
+diff --git a/util/collection/Dag.scala b/util/collection/Dag.scala
+index b617070..60511a0 100644
+--- a/util/collection/Dag.scala
++++ b/util/collection/Dag.scala
+@@ -12,14 +12,14 @@ trait Dag[Node <: Dag[Node]]{
+ object Dag
+ {
+ 	import scala.collection.{mutable, JavaConversions};
+-	import JavaConversions.{asIterable, asSet}
++	import JavaConversions.{ asScalaSet}
+ 
+ 	def topologicalSort[T](root: T)(dependencies: T => Iterable[T]): List[T] = topologicalSort(root :: Nil)(dependencies)
+ 	
+ 	def topologicalSort[T](nodes: Iterable[T])(dependencies: T => Iterable[T]): List[T] =
+ 	{
+ 		val discovered = new mutable.HashSet[T]
+-		val finished = asSet(new java.util.LinkedHashSet[T])
++		val finished = asScalaSet(new java.util.LinkedHashSet[T])
+ 
+ 		def visitAll(nodes: Iterable[T]) = nodes foreach visit
+ 		def visit(node : T){
+diff --git a/util/collection/IDSet.scala b/util/collection/IDSet.scala
+index 29ecf46..c93a2cc 100644
+--- a/util/collection/IDSet.scala
++++ b/util/collection/IDSet.scala
+@@ -37,7 +37,7 @@ object IDSet
+ 		def += (t: T) = backing.put(t, Dummy)
+ 		def ++=(t: Iterable[T]) = t foreach +=
+ 		def -= (t:T) = if(backing.remove(t) eq null) false else true
+-		def all = collection.JavaConversions.asIterable(backing.keySet)
++		def all = collection.JavaConversions.asScalaIterable(backing.keySet)
+ 		def isEmpty = backing.isEmpty
+ 		def process[S](t: T)(ifSeen: S)(ifNew: => S) = if(contains(t)) ifSeen else { this += t ; ifNew }
+ 		override def toString = backing.toString
+diff --git a/util/collection/INode.scala b/util/collection/INode.scala
+index b47031a..6208761 100644
+--- a/util/collection/INode.scala
++++ b/util/collection/INode.scala
+@@ -36,7 +36,7 @@ abstract class EvaluateSettings[Scope]
+ 	private[this] val roots: Seq[INode[_]] = compiledSettings flatMap { cs =>
+ 		(cs.settings map { s =>
+ 			val t = transform(s.init)
+-			static(s.key) = t
++			static(s.key.asInstanceOf[ScopedKey[Any]]) = t.asInstanceOf[INode[Any]]
+ 			t
+ 		}): Seq[INode[_]]
+ 	}
