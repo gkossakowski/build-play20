@@ -1,7 +1,43 @@
 diff --git a/framework/project/Build.scala b/framework/project/Build.scala
-index 8138059..916df17 100644
+index 8138059..5ce6d2b 100644
 --- a/framework/project/Build.scala
 +++ b/framework/project/Build.scala
+@@ -25,7 +25,7 @@ object PlayBuild extends Build {
+             javacOptions ++= Seq("-encoding", "utf8"),
+             resolvers ++= Seq(DefaultMavenRepository, typesafe)
+         )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
++    )
+ 
+     lazy val AnormProject = Project(
+         "Anorm",
+@@ -39,7 +39,7 @@ object PlayBuild extends Build {
+             publishArtifact in (Compile, packageDoc) := false,
+             publishArtifact in (Compile, packageSrc) := false
+         )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
++    )
+ 
+     lazy val PlayProject = Project(
+         "Play",
+@@ -57,7 +57,7 @@ object PlayBuild extends Build {
+             sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
+             compile in (Compile) <<= PostCompile
+         )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(TemplatesProject, AnormProject)
++    ).dependsOn(TemplatesProject, AnormProject)
+     
+     lazy val PlayTestProject = Project(
+       "Play-Test",
+@@ -72,7 +72,7 @@ object PlayBuild extends Build {
+         publishArtifact in (Compile, packageSrc) := false,
+         resolvers ++= Seq(DefaultMavenRepository, typesafe)
+       )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
++    ).dependsOn(PlayProject)
+ 
+     lazy val SbtPluginProject = Project(
+       "SBT-Plugin",
 @@ -80,7 +80,7 @@ object PlayBuild extends Build {
        settings = buildSettings ++ Seq(
          sbtPlugin := true,
@@ -11,7 +47,33 @@ index 8138059..916df17 100644
          unmanagedJars in Compile  ++=  sbtJars,
          publishMavenStyle := false,
          publishTo := Some(playRepository),
-@@ -134,16 +134,30 @@ object PlayBuild extends Build {
+@@ -95,7 +95,7 @@ object PlayBuild extends Build {
+           "play" %% "templates" % buildVersion notTransitive()
+         ) 
+       )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
++    ).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
+ 
+     lazy val ConsoleProject = Project(
+       "Console",
+@@ -112,7 +112,7 @@ object PlayBuild extends Build {
+         resolvers ++= Seq(DefaultMavenRepository, typesafe),
+         projectDependencies := Seq("play" %% "play" % buildVersion notTransitive()) 
+       )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
++    ).dependsOn(PlayProject)
+ 
+     val Root = Project(
+         "Root",
+@@ -127,23 +127,36 @@ object PlayBuild extends Build {
+             publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
+             publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
+         )
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
+-     .dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
++    ).dependsOn(PlayProject).aggregate(AnormProject, TemplatesProject, PlayProject, SbtPluginProject, ConsoleProject, PlayTestProject)
+ 
+     object BuildSettings {
  
          val buildOrganization = "play"
          val buildVersion      = "2.0-RC1-SNAPSHOT"
@@ -40,12 +102,12 @@ index 8138059..916df17 100644
 -        )
 +            ivyLoggingLevel := UpdateLogging.DownloadOnly,
 +            resolvers += ivyDefaultLocalRepository,
-+						resolvers += mavenLocal
++            resolvers += mavenLocal
 +        ) ++ localScalaSettings
  
      }
  
-@@ -165,6 +179,8 @@ object PlayBuild extends Build {
+@@ -165,6 +178,8 @@ object PlayBuild extends Build {
          val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
          val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
          val typesafe = "Typesafe Repository" at typesafeRepo
@@ -54,62 +116,61 @@ index 8138059..916df17 100644
      }
  
      object Dependencies {
-@@ -414,10 +430,63 @@ object PlayBuild extends Build {
+@@ -414,10 +429,62 @@ object PlayBuild extends Build {
              zipFile
          }
  
-+				import java.net.URLClassLoader
++        import java.net.URLClassLoader
 +
-+				/**
-+				 * Code taken from: http://stackoverflow.com/a/5446671
-+				 *
-+				 * A parent-last classloader that will try the child classloader first and then the parent.
-+				 * This takes a fair bit of doing because java really prefers parent-first.
-+				 *
-+				 * For those not familiar with class loading trickery, be wary
-+				 */
-+				class ParentLastURLClassLoader(classpath: Array[URL], parent: ClassLoader) extends ClassLoader(parent) {
-+				    private val childClassLoader: ChildURLClassLoader =
-+						new ChildURLClassLoader(classpath, new FindClassClassLoader(this.getParent()) )
++        /**
++         * Code taken from: http://stackoverflow.com/a/5446671
++         *
++         * A parent-last classloader that will try the child classloader first and then the parent.
++         * This takes a fair bit of doing because java really prefers parent-first.
++         *
++         * For those not familiar with class loading trickery, be wary
++         */
++        class ParentLastURLClassLoader(classpath: Array[URL], parent: ClassLoader) extends ClassLoader(parent) {
++            private val childClassLoader: ChildURLClassLoader =
++              new ChildURLClassLoader(classpath, new FindClassClassLoader(this.getParent()) )
 +
-+				    /**
-+				     * This class allows me to call findClass on a classloader
-+				     */
-+				    private class FindClassClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
++            /**
++             * This class allows me to call findClass on a classloader
++             */
++            private class FindClassClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
++                override def findClass(name: String) = {
++                    super.findClass(name)
++                }
++            }
 +
-+				        override def findClass(name: String) = {
-+				            super.findClass(name)
-+				        }
-+				    }
++            /**
++             * This class delegates (child then parent) for the findClass method for a URLClassLoader.
++             * We need this because findClass is protected in URLClassLoader
++             */
++            private class ChildURLClassLoader(urls: Array[URL], realParent: FindClassClassLoader) extends URLClassLoader(urls, null) {
 +
-+				    /**
-+				     * This class delegates (child then parent) for the findClass method for a URLClassLoader.
-+				     * We need this because findClass is protected in URLClassLoader
-+				     */
-+				    private class ChildURLClassLoader(urls: Array[URL], realParent: FindClassClassLoader) extends URLClassLoader(urls, null) {
++                override def findClass(name: String): Class[_] = try {
++                        // first try to use the URLClassLoader findClass
++                        super.findClass(name);
++                    } catch {
++                      case e: ClassNotFoundException =>
++                        // if that fails, we ask our real parent classloader to load the class (we give up)
++                        realParent.loadClass(name);
++                    }
++            }
 +
-+				        override def findClass(name: String): Class[_] = try {
-+				                // first try to use the URLClassLoader findClass
-+				                super.findClass(name);
-+				            } catch {
-+											case e: ClassNotFoundException =>
-+				                // if that fails, we ask our real parent classloader to load the class (we give up)
-+				                realParent.loadClass(name);
-+				            }
-+				    }
-+
-+				    override protected def loadClass(name: String, resolve: Boolean): Class[_] = synchronized {
-+				        try {
-+				            // first we try to find a class inside the child classloader
-+				            childClassLoader.findClass(name);
-+				        }
-+				        catch {
-+									case e: ClassNotFoundException =>
-+				            // didn't find it, try the parent
-+				            super.loadClass(name, resolve);
-+				        }
-+				    }
-+				}
++            override protected def loadClass(name: String, resolve: Boolean): Class[_] = synchronized {
++                try {
++                    // first we try to find a class inside the child classloader
++                    childClassLoader.findClass(name);
++                }
++                catch {
++                  case e: ClassNotFoundException =>
++                    // didn't find it, try the parent
++                    super.loadClass(name, resolve);
++                }
++            }
++        }
 +
          // ----- Compile templates
  
@@ -119,6 +180,70 @@ index 8138059..916df17 100644
              val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
              val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
  
+diff --git a/framework/project/plugins.sbt b/framework/project/plugins.sbt
+index bdb7ed9..4efc9e8 100644
+--- a/framework/project/plugins.sbt
++++ b/framework/project/plugins.sbt
+@@ -2,4 +2,6 @@ logLevel := Level.Warn
+ 
+ resolvers += Classpaths.typesafeResolver
+ 
+-addSbtPlugin("com.typesafe.sbtscalariform" % "sbtscalariform" % "0.3.0")
++resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
++
++//addSbtPlugin("com.typesafe.sbtscalariform" % "sbtscalariform" % "0.3.0")
+diff --git a/framework/sbt/play.boot.properties b/framework/sbt/play.boot.properties
+index 586f6b8..2b70bf1 100644
+--- a/framework/sbt/play.boot.properties
++++ b/framework/sbt/play.boot.properties
+@@ -1,5 +1,5 @@
+ [scala]
+-  version: 2.9.1
++  version: 2.10.0-virtualized-SNAPSHOT
+ 
+ [app]
+   org: play
+@@ -9,12 +9,12 @@
+   cross-versioned: true
+ 
+ [repositories]
++  ivy-local: file:///Users/grek/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
++  m2-loca: file:///Users/grek/.m2/repository
+   local
+   maven-local
+   typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
+   maven-central
+-  scala-tools-releases
+-  scala-tools-snapshots
+ 
+ [boot]
+   directory: ${play.home}/sbt/boot
+diff --git a/framework/sbt/sbt.boot.properties b/framework/sbt/sbt.boot.properties
+index f3c227c..9b87e0f 100644
+--- a/framework/sbt/sbt.boot.properties
++++ b/framework/sbt/sbt.boot.properties
+@@ -1,5 +1,5 @@
+ [scala]
+-  version: 2.9.1
++  version: 2.10.0-virtualized-SNAPSHOT
+ 
+ [app]
+   org: org.scala-tools.sbt
+@@ -10,12 +10,12 @@
+   cross-versioned: true
+ 
+ [repositories]
++  m2-local: file:///Users/grek/.m2/repository
++  ivy2-local: file:///Users/grek/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
+   local
+   maven-local
+   typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
+   maven-central
+-  scala-tools-releases
+-  scala-tools-snapshots
+ 
+ [boot]
+   directory: ${play.home}/sbt/boot
 diff --git a/framework/src/play/src/main/java/play/Application.java b/framework/src/play/src/main/java/play/Application.java
 index 7829dc8..511cd43 100644
 --- a/framework/src/play/src/main/java/play/Application.java
