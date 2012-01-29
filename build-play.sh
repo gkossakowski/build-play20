@@ -1,5 +1,7 @@
 #/bin/bash
 
+set -e
+
 FRESH=1
 mkdir -p build
 
