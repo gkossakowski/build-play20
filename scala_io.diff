@@ -126,3 +126,10 @@ index 902084c..a229a17 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/project/build.properties b/project/build.properties
+new file mode 100644
+index 0000000..f4ff7a5
+--- /dev/null
++++ b/project/build.properties
+@@ -0,0 +1 @@
++sbt.version=0.11.2

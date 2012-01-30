@@ -1,3 +1,10 @@
+diff --git a/project/build.properties b/project/build.properties
+new file mode 100644
+index 0000000..f4ff7a5
+--- /dev/null
++++ b/project/build.properties
+@@ -0,0 +1 @@
++sbt.version=0.11.2
 diff --git a/specs2.sbt b/specs2.sbt
 index fc7f7ca..2ea8ea1 100644
 --- a/specs2.sbt
