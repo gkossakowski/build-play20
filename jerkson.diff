@@ -1,9 +1,9 @@
 diff --git a/build.sbt b/build.sbt
 new file mode 100644
-index 0000000..bf892e5
+index 0000000..6c3576d
 --- /dev/null
 +++ b/build.sbt
-@@ -0,0 +1,30 @@
+@@ -0,0 +1,31 @@
 +name := "jerkson"
 +
 +organization := "com.codahale"
@@ -22,7 +22,8 @@ index 0000000..bf892e5
 +
 +scalaVersion := "2.10.0-virtualized-SNAPSHOT"
 +
-+resolvers += ScalaToolsSnapshots
++//needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
++resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
 +
 +resolvers += ScalaToolsReleases
 +

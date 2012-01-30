@@ -40,7 +40,7 @@ index 980450a..c0e1ba7 100644
    }
  
 diff --git a/project/Build.scala b/project/Build.scala
-index 902084c..35b06d0 100644
+index 902084c..a229a17 100644
 --- a/project/Build.scala
 +++ b/project/Build.scala
 @@ -4,15 +4,15 @@ import Keys._
@@ -62,7 +62,7 @@ index 902084c..35b06d0 100644
      settings(sharedSettings ++ Seq(publishArtifact := false) :_*)
  
    // ----------------------- Samples Settings ----------------------- //
-@@ -41,7 +41,16 @@ object ScalaIoBuild extends Build {
+@@ -41,7 +41,17 @@ object ScalaIoBuild extends Build {
      </licenses>
  
    val sharedSettings = Seq[Setting[_]](
@@ -76,11 +76,12 @@ index 902084c..35b06d0 100644
 +	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
 +	  else Some(file(x))
 +	},
-+    resolvers += ScalaToolsSnapshots,
++    //needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
++    resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository",
      organization := BuildConstants.organization,
      version := BuildConstants.version,
      maxErrors := 20,
-@@ -78,14 +87,14 @@ object ScalaIoBuild extends Build {
+@@ -78,14 +88,14 @@ object ScalaIoBuild extends Build {
      
    // ----------------------- Performace Project ---------------------//
    
@@ -103,7 +104,7 @@ index 902084c..35b06d0 100644
    
  
    // ------------------------------ Docs Project ------------------------------ //
-@@ -103,19 +112,4 @@ object ScalaIoBuild extends Build {
+@@ -103,19 +113,4 @@ object ScalaIoBuild extends Build {
  
      model.buildSite
    }

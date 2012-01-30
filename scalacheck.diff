@@ -1,9 +1,9 @@
 diff --git a/build.sbt b/build.sbt
 new file mode 100644
-index 0000000..ccfa5f2
+index 0000000..a748718
 --- /dev/null
 +++ b/build.sbt
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,34 @@
 +name := "scalacheck"
 +
 +version := "1.9"
@@ -22,7 +22,8 @@ index 0000000..ccfa5f2
 +
 +scalaVersion := "2.10.0-virtualized-SNAPSHOT"
 +
-+resolvers += ScalaToolsSnapshots
++//needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
++resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
 +
 +crossScalaVersions := Seq("2.9.0-1", "2.9.1.RC2", "2.9.1.RC3", "2.9.1")
 +
