@@ -135,12 +135,10 @@ Play20() {
     cd Play20/framework
     git checkout 154a2e4214b9fc38524d8a8a7e13d8cd4de91fb7
     git apply ../../../play20.diff
-    sh build
-    (cd ../../../; bash fix-sbt.sh)
   else
     cd build/Play20/framework
   fi
-  sh build
+  sh build publish-local
 }
 
 scala_stm
