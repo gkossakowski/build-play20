@@ -1,17 +1,17 @@
 diff --git a/framework/project/Build.scala b/framework/project/Build.scala
-index 8138059..5ce6d2b 100644
+index 84cd6d9..f7a8ceb 100644
 --- a/framework/project/Build.scala
 +++ b/framework/project/Build.scala
-@@ -25,7 +25,7 @@ object PlayBuild extends Build {
+@@ -23,7 +23,7 @@ object PlayBuild extends Build {
              javacOptions ++= Seq("-encoding", "utf8"),
-             resolvers ++= Seq(DefaultMavenRepository, typesafe)
+             resolvers += typesafe
          )
 -    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
 +    )
  
      lazy val AnormProject = Project(
          "Anorm",
-@@ -39,7 +39,7 @@ object PlayBuild extends Build {
+@@ -36,7 +36,7 @@ object PlayBuild extends Build {
              publishArtifact in (Compile, packageDoc) := false,
              publishArtifact in (Compile, packageSrc) := false
          )
@@ -20,7 +20,7 @@ index 8138059..5ce6d2b 100644
  
      lazy val PlayProject = Project(
          "Play",
-@@ -57,7 +57,7 @@ object PlayBuild extends Build {
+@@ -53,7 +53,7 @@ object PlayBuild extends Build {
              sourceGenerators in Compile <+= (dependencyClasspath in TemplatesProject in Runtime, packageBin in TemplatesProject in Compile, scalaSource in Compile, sourceManaged in Compile, streams) map ScalaTemplates,
              compile in (Compile) <<= PostCompile
          )
@@ -29,43 +29,43 @@ index 8138059..5ce6d2b 100644
      
      lazy val PlayTestProject = Project(
        "Play-Test",
-@@ -72,7 +72,7 @@ object PlayBuild extends Build {
+@@ -67,7 +67,7 @@ object PlayBuild extends Build {
          publishArtifact in (Compile, packageSrc) := false,
-         resolvers ++= Seq(DefaultMavenRepository, typesafe)
+         resolvers += typesafe
        )
 -    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
 +    ).dependsOn(PlayProject)
  
      lazy val SbtPluginProject = Project(
        "SBT-Plugin",
-@@ -80,7 +80,7 @@ object PlayBuild extends Build {
-       settings = buildSettings ++ Seq(
+@@ -76,7 +76,7 @@ object PlayBuild extends Build {
          sbtPlugin := true,
-         libraryDependencies := sbtDependencies,
--        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M3"),
-+        // addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0-M3"),
-         unmanagedJars in Compile  ++=  sbtJars,
          publishMavenStyle := false,
-         publishTo := Some(playRepository),
-@@ -95,7 +95,7 @@ object PlayBuild extends Build {
-           "play" %% "templates" % buildVersion notTransitive()
-         ) 
+         libraryDependencies := sbtDependencies,
+-        addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
++        //addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-core" % "2.0.0"),
+         unmanagedJars in Compile ++= sbtJars,
+         publishTo := Some(playIvyRepository),
+         scalacOptions ++= Seq("-Xlint", "-deprecation", "-unchecked","-encoding", "utf8"),
+@@ -85,7 +85,7 @@ object PlayBuild extends Build {
+         publishArtifact in (Compile, packageSrc) := false,
+         resolvers += typesafe
        )
 -    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
 +    ).dependsOn(PlayProject, TemplatesProject, ConsoleProject)
  
      lazy val ConsoleProject = Project(
        "Console",
-@@ -112,7 +112,7 @@ object PlayBuild extends Build {
-         resolvers ++= Seq(DefaultMavenRepository, typesafe),
-         projectDependencies := Seq("play" %% "play" % buildVersion notTransitive()) 
+@@ -101,7 +101,7 @@ object PlayBuild extends Build {
+         publishArtifact in (Compile, packageSrc) := false,
+         resolvers += typesafe
        )
--    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*).dependsOn(PlayProject)
-+    ).dependsOn(PlayProject)
+-    ).settings(com.typesafe.sbtscalariform.ScalariformPlugin.defaultScalariformSettings: _*)
++    )
  
      val Root = Project(
          "Root",
-@@ -127,23 +127,36 @@ object PlayBuild extends Build {
+@@ -116,23 +116,36 @@ object PlayBuild extends Build {
              publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
              publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
          )
@@ -76,7 +76,7 @@ index 8138059..5ce6d2b 100644
      object BuildSettings {
  
          val buildOrganization = "play"
-         val buildVersion      = "2.0-RC1-SNAPSHOT"
+         val buildVersion      = Option(System.getProperty("play.version")).filterNot(_.isEmpty).getOrElse("2.0-unknown")
 -        val buildScalaVersion = "2.9.1"
 +        val buildScalaVersion = "2.10.0-virtualized-SNAPSHOT"
          val buildSbtVersion   = "0.11.2"
@@ -107,93 +107,27 @@ index 8138059..5ce6d2b 100644
  
      }
  
-@@ -165,6 +178,8 @@ object PlayBuild extends Build {
-         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns)   
-         val playRepository = Resolver.ssh("Play Repository", "download.playframework.org", "/srv/http/download.playframework.org/htdocs/ivy-releases/")(Resolver.ivyStylePatterns) as("root", new File(System.getProperty("user.home") + "/.ssh/id_rsa"), "") withPermissions("0644")
-         val typesafe = "Typesafe Repository" at typesafeRepo
+@@ -160,6 +173,8 @@ object PlayBuild extends Build {
+         val playLocalRepository = Resolver.file("Play Local Repository", file("../repository/local"))(Resolver.ivyStylePatterns) 
+         
+         val typesafe = "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
 +        val ivyDefaultLocalRepository = Resolver.url("Default Ivy Local Repository", url(Path.userHome.asURL + "/.ivy2/local"))(Resolver.ivyStylePatterns)
 +        val mavenLocal = "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
-     }
- 
-     object Dependencies {
-@@ -414,10 +429,62 @@ object PlayBuild extends Build {
-             zipFile
-         }
- 
-+        import java.net.URLClassLoader
-+
-+        /**
-+         * Code taken from: http://stackoverflow.com/a/5446671
-+         *
-+         * A parent-last classloader that will try the child classloader first and then the parent.
-+         * This takes a fair bit of doing because java really prefers parent-first.
-+         *
-+         * For those not familiar with class loading trickery, be wary
-+         */
-+        class ParentLastURLClassLoader(classpath: Array[URL], parent: ClassLoader) extends ClassLoader(parent) {
-+            private val childClassLoader: ChildURLClassLoader =
-+              new ChildURLClassLoader(classpath, new FindClassClassLoader(this.getParent()) )
-+
-+            /**
-+             * This class allows me to call findClass on a classloader
-+             */
-+            private class FindClassClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
-+                override def findClass(name: String) = {
-+                    super.findClass(name)
-+                }
-+            }
-+
-+            /**
-+             * This class delegates (child then parent) for the findClass method for a URLClassLoader.
-+             * We need this because findClass is protected in URLClassLoader
-+             */
-+            private class ChildURLClassLoader(urls: Array[URL], realParent: FindClassClassLoader) extends URLClassLoader(urls, null) {
-+
-+                override def findClass(name: String): Class[_] = try {
-+                        // first try to use the URLClassLoader findClass
-+                        super.findClass(name);
-+                    } catch {
-+                      case e: ClassNotFoundException =>
-+                        // if that fails, we ask our real parent classloader to load the class (we give up)
-+                        realParent.loadClass(name);
-+                    }
-+            }
-+
-+            override protected def loadClass(name: String, resolve: Boolean): Class[_] = synchronized {
-+                try {
-+                    // first we try to find a class inside the child classloader
-+                    childClassLoader.findClass(name);
-+                }
-+                catch {
-+                  case e: ClassNotFoundException =>
-+                    // didn't find it, try the parent
-+                    super.loadClass(name, resolve);
-+                }
-+            }
-+        }
-+
-         // ----- Compile templates
- 
-         val ScalaTemplates = { (classpath:Seq[Attributed[File]], templateEngine:File, sourceDirectory:File, generatedDir:File, streams:sbt.std.TaskStreams[sbt.Project.ScopedKey[_]]) =>
--            val classloader = new java.net.URLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
-+            val classloader = new ParentLastURLClassLoader(classpath.map(_.data.toURI.toURL).toArray, this.getClass.getClassLoader)
-             val compiler = classloader.loadClass("play.templates.ScalaTemplateCompiler")
-             val generatedSource = classloader.loadClass("play.templates.GeneratedSource")
- 
+         
+         val typesafeReleases = "Typesafe Releases Repository" at "http://repo.typesafe.com/typesafe/maven-releases/"
+         val typesafeSnapshot = "Typesafe Snapshots Repository" at "http://repo.typesafe.com/typesafe/maven-snapshots/"
 diff --git a/framework/project/plugins.sbt b/framework/project/plugins.sbt
-index bdb7ed9..4efc9e8 100644
+index bdb7ed9..c80f299 100644
 --- a/framework/project/plugins.sbt
 +++ b/framework/project/plugins.sbt
-@@ -2,4 +2,6 @@ logLevel := Level.Warn
+@@ -2,4 +2,4 @@ logLevel := Level.Warn
  
  resolvers += Classpaths.typesafeResolver
  
 -addSbtPlugin("com.typesafe.sbtscalariform" % "sbtscalariform" % "0.3.0")
 +resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
-+
-+//addSbtPlugin("com.typesafe.sbtscalariform" % "sbtscalariform" % "0.3.0")
 diff --git a/framework/sbt/play.boot.properties b/framework/sbt/play.boot.properties
-index 586f6b8..2b70bf1 100644
+index 6f5db46..30b4226 100644
 --- a/framework/sbt/play.boot.properties
 +++ b/framework/sbt/play.boot.properties
 @@ -1,5 +1,5 @@
@@ -207,8 +141,8 @@ index 586f6b8..2b70bf1 100644
    cross-versioned: true
  
  [repositories]
-+  ivy-local: file:///Users/grek/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
-+  m2-loca: file:///Users/grek/.m2/repository
++  m2-local: file:///home/namin/.m2/repository
++  ivy2-local: file:///home/namin/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
    local
    maven-local
    typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
@@ -219,7 +153,7 @@ index 586f6b8..2b70bf1 100644
  [boot]
    directory: ${play.home}/sbt/boot
 diff --git a/framework/sbt/sbt.boot.properties b/framework/sbt/sbt.boot.properties
-index f3c227c..9b87e0f 100644
+index f3c227c..264fb9b 100644
 --- a/framework/sbt/sbt.boot.properties
 +++ b/framework/sbt/sbt.boot.properties
 @@ -1,5 +1,5 @@
@@ -233,8 +167,8 @@ index f3c227c..9b87e0f 100644
    cross-versioned: true
  
  [repositories]
-+  m2-local: file:///Users/grek/.m2/repository
-+  ivy2-local: file:///Users/grek/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
++  m2-local: file:///home/namin/.m2/repository
++  ivy2-local: file:///home/namin/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
    local
    maven-local
    typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
@@ -245,102 +179,115 @@ index f3c227c..9b87e0f 100644
  [boot]
    directory: ${play.home}/sbt/boot
 diff --git a/framework/src/play/src/main/java/play/Application.java b/framework/src/play/src/main/java/play/Application.java
-index 7829dc8..511cd43 100644
+index 85a2dd7..a117b98 100644
 --- a/framework/src/play/src/main/java/play/Application.java
 +++ b/framework/src/play/src/main/java/play/Application.java
-@@ -100,9 +100,10 @@ public class Application {
+@@ -99,9 +99,10 @@ public class Application {
       * @return a set of types names statifying the condition
       */
      public Set<String> getTypesAnnotatedWith(String packageName, Class<? extends java.lang.annotation.Annotation> annotation) {
 -        return scala.collection.JavaConverters.setAsJavaSetConverter(
 -            application.getTypesAnnotatedWith(packageName, annotation)
 -        ).asJava();
-+        // return scala.collection.JavaConverters.setAsJavaSetConverter(
-+        //     application.getTypesAnnotatedWith(packageName, annotation)
-+        // ).asJava();
++        //return scala.collection.JavaConverters.setAsJavaSetConverter(
++        //    application.getTypesAnnotatedWith(packageName, annotation)
++        //).asJava();
 +        throw new RuntimeException("ouch!");
      }
      
- }
-\ No newline at end of file
+     /**
 diff --git a/framework/src/play/src/main/java/play/Configuration.java b/framework/src/play/src/main/java/play/Configuration.java
-index 9382e36..70bb492 100644
+index 7e9481c..04a6af9 100644
 --- a/framework/src/play/src/main/java/play/Configuration.java
 +++ b/framework/src/play/src/main/java/play/Configuration.java
-@@ -93,7 +93,8 @@ public class Configuration {
+@@ -104,7 +104,8 @@ public class Configuration {
       * @return the set of keys available in this configuration
       */
      public Set<String> keys() {
 -        return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
-+        // return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
++        //return JavaConverters.setAsJavaSetConverter(conf.keys()).asJava();
 +        throw new RuntimeException("ouch!");
      }
      
      /**
 diff --git a/framework/src/play/src/main/java/play/i18n/Messages.java b/framework/src/play/src/main/java/play/i18n/Messages.java
-index c0f539d..2a7f781 100644
+index 26043ee..17bd4d4 100644
 --- a/framework/src/play/src/main/java/play/i18n/Messages.java
 +++ b/framework/src/play/src/main/java/play/i18n/Messages.java
-@@ -32,7 +32,8 @@ public class Messages {
+@@ -20,8 +20,9 @@ public class Messages {
      * @return the formatted message or a default rendering if the key wasn't defined
      */
-     public String get(String key, Object... args) {
--        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
--        return play.api.i18n.Messages.apply(key, scalaArgs);
-+        // Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter( Arrays.asList(args)).asScala();
-+        // return play.api.i18n.Messages.apply(key, scalaArgs);
-+        throw new RuntimeException("ouch!");
-     }
- }
-diff --git a/framework/src/play/src/main/java/play/libs/Scala.java b/framework/src/play/src/main/java/play/libs/Scala.java
-index 8b6cbcb..44d9fb5 100644
---- a/framework/src/play/src/main/java/play/libs/Scala.java
-+++ b/framework/src/play/src/main/java/play/libs/Scala.java
-@@ -15,21 +15,25 @@ public class Scala {
-     }
- 
-     public static <K,V> java.util.Map<K,V> asJava(scala.collection.Map<K,V> scalaMap) {
--       return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
-+       // return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
+     public static String get(Lang lang, String key, Object... args) {
+-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+-        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)lang);
++        //Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
++        //return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)lang);
 +        throw new RuntimeException("ouch!");
      }
      
+     /**
+@@ -34,8 +35,9 @@ public class Messages {
+     * @return the formatted message or a default rendering if the key wasn't defined
+     */
+     public static String get(String key, Object... args) {
+-        Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
+-        return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)play.mvc.Http.Context.Implicit.lang());
++        //Buffer scalaArgs = scala.collection.JavaConverters.asScalaBufferConverter(Arrays.asList(args)).asScala();
++        //return play.api.i18n.Messages.apply(key, scalaArgs, (play.api.i18n.Lang)play.mvc.Http.Context.Implicit.lang());
++        throw new RuntimeException("ouch!");
+     }
+     
+ }
+diff --git a/framework/src/play/src/main/java/play/libs/Scala.java b/framework/src/play/src/main/java/play/libs/Scala.java
+index b27b8ba..4585a60 100644
+--- a/framework/src/play/src/main/java/play/libs/Scala.java
++++ b/framework/src/play/src/main/java/play/libs/Scala.java
+@@ -21,30 +21,34 @@ public class Scala {
+      * Converts a Scala Map to Java.
+      */
+     public static <K,V> java.util.Map<K,V> asJava(scala.collection.Map<K,V> scalaMap) {
+-       return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
++        //return scala.collection.JavaConverters.asJavaMapConverter(scalaMap).asJava();
++        throw new RuntimeException("ouch!");
+     }
+     
+     /**
+      * Converts a Java Map to Scala.
+      */
      public static <A,B> scala.collection.immutable.Map<A,B> asScala(Map<A,B> javaMap) {
 -        return play.utils.Conversions.newMap(
 -            scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
 -        );
-+        // return play.utils.Conversions.newMap(
-+        //     scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
-+        // );
++        //return play.utils.Conversions.newMap(
++        //    scala.collection.JavaConverters.asScalaMapConverter(javaMap).asScala().toSeq()
++        //);
 +        throw new RuntimeException("ouch!");
      } 
  
-     public static <T> java.util.List<T> asJava(scala.collection.immutable.List<T> scalaList) {
+     /**
+      * Converts a Scala List to Java.
+      */
+     public static <T> java.util.List<T> asJava(scala.collection.Seq<T> scalaList) {
 -       return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
-+//       return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
++        //return scala.collection.JavaConverters.asJavaListConverter(scalaList).asJava();
 +        throw new RuntimeException("ouch!");
      }
  
+     /**
+      * Converts a Java List to Scala Seq.
+      */
      public static <T> scala.collection.Seq<T> toSeq(java.util.List<T> list) {
 -        return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
-+        // return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
++        //return scala.collection.JavaConverters.asScalaBufferConverter(list).asScala().toList();
 +        throw new RuntimeException("ouch!");
      }
  
-     public static <T> scala.collection.Seq<T> toSeq(T[] array) {
+     /**
 diff --git a/framework/src/play/src/main/java/play/mvc/Results.java b/framework/src/play/src/main/java/play/mvc/Results.java
-index 1a1bf72..dabacdf 100644
+index 0ab2de0..bc9edd4 100644
 --- a/framework/src/play/src/main/java/play/mvc/Results.java
 +++ b/framework/src/play/src/main/java/play/mvc/Results.java
-@@ -3,6 +3,7 @@ package play.mvc;
- import play.api.*;
- import play.api.mvc.*;
- import play.api.mvc.Results.* ;
-+import play.api.libs.iteratee.Enumerator;
- 
- import play.libs.*;
- import play.libs.F.*;
-@@ -1075,22 +1076,27 @@ public class Results {
+@@ -1122,11 +1122,13 @@ public class Results {
              if(content == null) {
                  throw new NullPointerException("null content");
              }
@@ -349,42 +296,36 @@ index 1a1bf72..dabacdf 100644
 -                play.core.j.JavaResults.writeBytes(),
 -                play.core.j.JavaResults.contentTypeOfBytes()
 -            );
-+            wrappedResult = null;
-+            throw new RuntimeException("Should never get here. Ouch!");
 +            // wrappedResult = status.stream(
 +            //     play.core.j.JavaResults.chunked(content, chunkSize), 
 +            //     play.core.j.JavaResults.writeBytes(),
 +            //     play.core.j.JavaResults.contentTypeOfBytes()
 +            // );
++            wrappedResult = null;
++            throw new RuntimeException("Should never get here. Ouch!");
          }
          
          public Status(play.api.mvc.Results.Status status, File content, int chunkSize) {
-             if(content == null) {
-                 throw new NullPointerException("null content");
-             }
--            wrappedResult = status.stream(
--                play.core.j.JavaResults.chunked(content, chunkSize), 
--                play.core.j.JavaResults.writeBytes(),
--                play.core.j.JavaResults.contentTypeOfBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
--            );
-+            wrappedResult = null;
-+            throw new RuntimeException("Should never get here. Ouch!");
-+						// Enumerator<byte[]> arg1 = play.core.j.JavaResults.chunked(content, chunkSize);
-+						//             wrappedResult = status.stream(
-+						//                 arg1, 
-+						//                 play.core.j.JavaResults.writeBytes(),
-+						//                 play.core.j.JavaResults.contentTypeOfBytes(Scala.orNull(play.api.libs.MimeTypes.forFileName(content.getName())))
-+						//             );
-         }
+diff --git a/framework/src/play/src/main/scala/play/api/db/evolutions/Evolutions.scala b/framework/src/play/src/main/scala/play/api/db/evolutions/Evolutions.scala
+index 7cbf5a4..55278d7 100644
+--- a/framework/src/play/src/main/scala/play/api/db/evolutions/Evolutions.scala
++++ b/framework/src/play/src/main/scala/play/api/db/evolutions/Evolutions.scala
+@@ -293,7 +293,7 @@ object Evolutions {
+     val ups = (nonConflictingUps ++ conflictingUps).reverse.map(e => UpScript(e, e.sql_up))
+     val downs = (nonConflictingDowns ++ conflictingDowns).map(e => DownScript(e, e.sql_down))
  
-         public play.api.mvc.Result getWrappedResult() {
+-    downs ++ ups
++    (downs ++ ups).asInstanceOf[Seq[Product with Serializable with Script]]
+   }
+ 
+   /**
 diff --git a/framework/src/play/src/main/scala/play/core/j/JavaAction.scala b/framework/src/play/src/main/scala/play/core/j/JavaAction.scala
-index bc8c592..6f9d0e1 100644
+index 60a7db5..76602bd 100644
 --- a/framework/src/play/src/main/scala/play/core/j/JavaAction.scala
 +++ b/framework/src/play/src/main/scala/play/core/j/JavaAction.scala
 @@ -38,12 +38,12 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
      }
-     
+ 
      // Wrap into user defined Global action
 -    val baseAction = play.api.Play.maybeApplication.map { app =>
 +    val baseAction: JAction[Any] = play.api.Play.maybeApplication.map { app =>
@@ -397,20 +338,20 @@ index bc8c592..6f9d0e1 100644
          }
          case _ => rootAction
        }
-@@ -56,9 +56,9 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
-       }.reverse
+@@ -62,9 +62,9 @@ trait JavaAction extends Action[play.mvc.Http.RequestBody] with JavaHelpers {
+       }.flatten.reverse
      }
  
 -    val finalAction = actionMixins.foldLeft[JAction[_ <: Any]](baseAction) {
 +    val finalAction = actionMixins.foldLeft[JAction[Any]](baseAction) {
        case (delegate, (annotation, actionClass)) => {
--        val action = actionClass.newInstance()
+-        val action = actionClass.newInstance
 +        val action = actionClass.newInstance().asInstanceOf[JAction[Any]]
          action.configuration = annotation
          action.delegate = delegate
          action
 diff --git a/framework/src/play/src/main/scala/play/core/server/netty/Helpers.scala b/framework/src/play/src/main/scala/play/core/server/netty/Helpers.scala
-index 53a1aec..26bf909 100644
+index 4b6f63d..9135bbb 100644
 --- a/framework/src/play/src/main/scala/play/core/server/netty/Helpers.scala
 +++ b/framework/src/play/src/main/scala/play/core/server/netty/Helpers.scala
 @@ -46,7 +46,7 @@ private[netty] trait Helpers {
@@ -423,10 +364,10 @@ index 53a1aec..26bf909 100644
        override def toString = headers.toString
      }
 diff --git a/framework/src/sbt-plugin/src/main/scala/PlayCommands.scala b/framework/src/sbt-plugin/src/main/scala/PlayCommands.scala
-index 0e2cc78..14ddf8f 100644
+index d8c09da..bbd8ebc 100644
 --- a/framework/src/sbt-plugin/src/main/scala/PlayCommands.scala
 +++ b/framework/src/sbt-plugin/src/main/scala/PlayCommands.scala
-@@ -155,29 +155,6 @@ trait PlayCommands {
+@@ -192,25 +192,25 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
      zip
    }
  
@@ -438,25 +379,40 @@ index 0e2cc78..14ddf8f 100644
 -    import com.typesafe.sbteclipse.core._
 -    import com.typesafe.sbteclipse.core.EclipsePlugin._
 -    def transformerFactory =
--      if (mainLang == SCALA)
--        EclipseClasspathEntryTransformerFactory.Default
--      else
--        new EclipseClasspathEntryTransformerFactory {
--          override def createTransformer(ref: ProjectRef, state: State) =
--            setting(crossTarget in ref)(state) map (ct =>
--              (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
--            )
--        }
+-      new EclipseClasspathEntryTransformerFactory {
+-        override def createTransformer(ref: ProjectRef, state: State) =
+-          setting(crossTarget in ref)(state) map (ct =>
+-            (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
+-          )
+-      }
 -    EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
 -      EclipseKeys.createSrc := EclipseCreateSrc.Default,
 -      EclipseKeys.preTasks := Seq(compile in Compile),
 -      EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
 -  }
--
-   val playIntellij = TaskKey[Unit]("idea")
-   val playIntellijTask = (javaSource in Compile, javaSource in Test, dependencyClasspath in Test, baseDirectory, dependencyClasspath in Runtime, normalizedName, version, scalaVersion, streams) map { (javaSource, jTestSource, testDeps, root, dependencies, id, version, scalaVersion, s) =>
++  // /**
++  //  * provides Settings for the eclipse project
++  //  * @param mainLang mainly scala or java?
++  //  */
++  // def eclipseCommandSettings(mainLang: String) = {
++  //   import com.typesafe.sbteclipse.core._
++  //   import com.typesafe.sbteclipse.core.EclipsePlugin._
++  //   def transformerFactory =
++  //     new EclipseClasspathEntryTransformerFactory {
++  //       override def createTransformer(ref: ProjectRef, state: State) =
++  //         setting(crossTarget in ref)(state) map (ct =>
++  //           (entries: Seq[EclipseClasspathEntry]) => entries :+ EclipseClasspathEntry.Lib(ct + java.io.File.separator + "classes_managed")
++  //         )
++  //     }
++  //   EclipsePlugin.eclipseSettings ++ Seq(EclipseKeys.commandName := "eclipsify",
++  //     EclipseKeys.createSrc := EclipseCreateSrc.Default,
++  //     EclipseKeys.preTasks := Seq(compile in Compile),
++  //     EclipseKeys.classpathEntryTransformerFactory := transformerFactory)
++  // }
  
-@@ -956,14 +933,14 @@ trait PlayCommands {
+   // -- Intellij
+ 
+@@ -987,14 +987,14 @@ exec java $* -cp "`dirname $0`/lib/*" """ + config.map(_ => "-Dconfig.file=`dirn
                case callers @ Seq(_*) => callers.map {
                  case (org, name, rev) => org + ":" + name + ":" + rev
                }
@@ -475,14 +431,15 @@ index 0e2cc78..14ddf8f 100644
  
            formatted._1.padTo(maxLines, "").zip(
 diff --git a/framework/src/sbt-plugin/src/main/scala/PlayProject.scala b/framework/src/sbt-plugin/src/main/scala/PlayProject.scala
-index 8d3d507..0c7c028 100644
+index 8e499ba..42542f0 100644
 --- a/framework/src/sbt-plugin/src/main/scala/PlayProject.scala
 +++ b/framework/src/sbt-plugin/src/main/scala/PlayProject.scala
-@@ -25,7 +25,6 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
-   def apply(name: String, applicationVersion: String = "1.0", dependencies: Seq[ModuleID] = Nil, path: File = file("."), mainLang: String = NONE) = {
+@@ -38,7 +38,7 @@ object PlayProject extends Plugin with PlayExceptions with PlayKeys with PlayRel
  
-     Project(name, path)
--      .settings(eclipseCommandSettings(mainLang): _*)
-       .settings(PlayProject.defaultSettings: _*)
-       .settings(Seq(testListeners += testListener): _*)
-       .settings(whichLang(mainLang): _*)
+     
+     lazy val playSettings = 
+-      PlayProject.defaultSettings ++ eclipseCommandSettings(mainLang) ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
++      PlayProject.defaultSettings ++ Seq(testListeners += testListener) ++ whichLang(mainLang) ++ Seq(
+         scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xcheckinit", "-encoding", "utf8"),
+         javacOptions ++= Seq("-encoding", "utf8", "-g"),
+         version := applicationVersion,

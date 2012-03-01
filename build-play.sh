@@ -89,7 +89,7 @@ akka() {
     cd build
     git clone https://github.com/jboner/akka.git
     cd akka
-    git checkout v2.0-M2
+    git checkout v2.0-RC2
     git apply ../../akka.diff
   else
     cd build/akka
@@ -120,7 +120,7 @@ specs2() {
     cd build
     git clone git://github.com/etorreborre/specs2.git
     cd specs2
-    git checkout SPECS2-1.6.1
+    git checkout SPECS2-1.7.1
     git apply ../../specs2.diff
   else
     cd build/specs2
@@ -150,7 +150,7 @@ Play20() {
     cd build
     git clone git://github.com/playframework/Play20.git
     cd Play20/framework
-    git checkout 154a2e4214b9fc38524d8a8a7e13d8cd4de91fb7
+    git checkout 2.0-RC3
     git apply ../../../play20.diff
   else
     cd build/Play20/framework

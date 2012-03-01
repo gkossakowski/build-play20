@@ -1,15 +1,8 @@
-diff --git a/project/build.properties b/project/build.properties
-new file mode 100644
-index 0000000..f4ff7a5
---- /dev/null
-+++ b/project/build.properties
-@@ -0,0 +1 @@
-+sbt.version=0.11.2
-diff --git a/specs2.sbt b/specs2.sbt
-index fc7f7ca..2ea8ea1 100644
---- a/specs2.sbt
-+++ b/specs2.sbt
-@@ -5,7 +5,19 @@ version := "1.6.1"
+diff --git a/build.sbt b/build.sbt
+index 04bc7d9..7b5ff29 100644
+--- a/build.sbt
++++ b/build.sbt
+@@ -9,7 +9,19 @@ version := "1.7.1"
  
  organization := "org.specs2"
  
@@ -28,84 +21,70 @@ index fc7f7ca..2ea8ea1 100644
 +
 +publishArtifact in (Compile, packageDoc) := false
  
- crossScalaVersions := Seq("2.9.0", "2.9.0-1") ++ (1 to 4).map(i => "2.9.1.RC"+i)
+ crossScalaVersions := Seq("2.9.0")
  
-@@ -14,14 +26,13 @@ shellPrompt := { state => System.getProperty("user.name") + "> " }
- 
+@@ -19,11 +31,11 @@ shellPrompt := { state => System.getProperty("user.name") + "> " }
  shellPrompt in ThisBuild := { state => Project.extract(state).currentRef.project + "> " }
  
--/** Dependencies */
+ /** Dependencies */
 -resolvers ++= Seq("snapshots-repo" at "http://scala-tools.org/repo-snapshots", 
 -                  "Local Maven Repository" at "file://c:/Documents and Settings/Eric/.m2/repository")
 +//needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
 +resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
  
- libraryDependencies ++= Seq(
-   "org.scala-tools.testing" %% "scalacheck" % "1.9" % "optional", 
-   "org.scala-tools.testing" % "test-interface" % "0.5" % "optional", 
+ libraryDependencies <<= scalaVersion { scala_version => Seq(
 -  "org.specs2" %% "specs2-scalaz-core" % "6.0.1",
 +  "org.specs2" % "specs2-scalaz-core_2.9.1" % "6.0.1",
-   "org.hamcrest" % "hamcrest-all" % "1.1" % "optional",
-   "org.mockito" % "mockito-all" % "1.8.5" % "optional",
-   "junit" % "junit" % "4.7" % "optional",
-diff --git a/src/main/scala/org/specs2/matcher/ScalaCheckMatchers.scala b/src/main/scala/org/specs2/matcher/ScalaCheckMatchers.scala
-index c546233..1796241 100644
---- a/src/main/scala/org/specs2/matcher/ScalaCheckMatchers.scala
-+++ b/src/main/scala/org/specs2/matcher/ScalaCheckMatchers.scala
-@@ -25,14 +25,14 @@ trait ScalaCheckMatchers extends ConsoleOutput with ScalaCheckFunctions with Sca
-    * transform a Function returning a MatchResult (or anything which can be converted to a Prop) as a ScalaCheck property
-    */
-   def check[T, R](result: T => R)(implicit toProp: R => Prop, a: Arbitrary[T], s: Shrink[T]): Prop = check1(result)
--  implicit def check1[T, R](result: T => R)(implicit toProp: R => Prop, a: Arbitrary[T], s: Shrink[T]): Prop = Prop.forAll((t: T) => result(t))
-+  def check1[T, R](result: T => R)(implicit toProp: R => Prop, a: Arbitrary[T], s: Shrink[T]): Prop = Prop.forAll((t: T) => result(t))
- 
-   def check[T1, T2, R](result: (T1, T2) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2]): Prop = check2(result)
-   implicit def check2[T1, T2, R](result: (T1, T2) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2]): Prop =
-     Prop.forAll((t1: T1, t2: T2) => result(t1, t2))
- 
-   def check[T1, T2, T3, R](result: (T1, T2, T3) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2], a3: Arbitrary[T3], s3: Shrink[T3]): Prop = check3(result)
--  implicit def check3[T1, T2, T3, R](result: (T1, T2, T3) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2], a3: Arbitrary[T3], s3: Shrink[T3]): Prop =
-+  def check3[T1, T2, T3, R](result: (T1, T2, T3) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2], a3: Arbitrary[T3], s3: Shrink[T3]): Prop =
-     Prop.forAll((t1: T1, t2: T2, t3: T3) => result(t1, t2, t3))
- 
-   def check[T1, T2, T3, T4, R](result: (T1, T2, T3, T4) => R)(implicit toProp: R => Prop, a1: Arbitrary[T1], s1: Shrink[T1], a2: Arbitrary[T2], s2: Shrink[T2], a3: Arbitrary[T3], s3: Shrink[T3], a4: Arbitrary[T4], s4: Shrink[T4]): Prop = check4(result)
+   "org.scala-lang" % "scala-compiler" % scala_version % "optional", 
+   "org.scala-tools.testing" %% "scalacheck" % "1.9" % "optional", 
+   "org.scala-tools.testing" % "test-interface" % "0.5" % "optional", 
+@@ -66,14 +78,14 @@ releaseProcess <<= thisProjectRef apply { ref =>
+   Seq[ReleasePart](
+     initialGitChecks,                     
+     checkSnapshotDependencies,    
+-    releaseTask(check in Posterous in ref),  
++    //releaseTask(check in Posterous in ref),  
+     inquireVersions,                        
+     setReleaseVersion,                      
+     runTest,                                
+     commitReleaseVersion,                   
+     tagRelease,                             
+     releaseTask(publish in Global in ref),
+-    releaseTask(publish in Posterous in ref),    
++    //releaseTask(publish in Posterous in ref),    
+     setNextVersion,                         
+     commitNextVersion                       
+   )
 diff --git a/src/main/scala/org/specs2/reporter/HtmlPrinter.scala b/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
-index efebf9d..5c0b50e 100644
+index d12b539..ddfc980 100644
 --- a/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
 +++ b/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
-@@ -120,7 +120,7 @@ trait HtmlPrinter extends OutputDir {
-   implicit object HtmlReducer extends Reducer[ExecutedFragment, List[Html]] {
-     implicit override def unit(fragment: ExecutedFragment) = List(print(fragment)) 
+@@ -105,7 +105,7 @@ trait HtmlPrinter {
+   implicit object HtmlReducer extends Reducer[ExecutedFragment, Seq[HtmlLine]] {
+     implicit override def unit(fragment: ExecutedFragment) = Seq(print(fragment))
      /** print an ExecutedFragment and its associated statistics */
 -    def print(fragment: ExecutedFragment) = fragment match { 
-+    def print(fragment: ExecutedFragment): Html = fragment match { 
++    def print(fragment: ExecutedFragment): HtmlLine = fragment match { 
        case start @ ExecutedSpecStart(_,_,_)       => HtmlSpecStart(start)
        case result @ ExecutedResult(_,_,_,_,_)     => HtmlResult(result)
        case text @ ExecutedText(s, _)              => HtmlText(text)
+@@ -132,4 +132,4 @@ case class TreeToc(rootCode: Int, toc: NodeSeq) {
+       <script>{"""$(function () {	$('#tree').jstree({'core':{'initially_open':['"""+rootCode+"','"+currentCode+"""'], 'animation':200}, 'plugins':['themes', 'html_data']}); });"""}</script>
+     </div>
+ 
+-}
+\ No newline at end of file
++}
 diff --git a/src/main/scala/org/specs2/specification/Fragments.scala b/src/main/scala/org/specs2/specification/Fragments.scala
-index 3ef1d9e..ca42978 100644
+index f1e904c..312de78 100644
 --- a/src/main/scala/org/specs2/specification/Fragments.scala
 +++ b/src/main/scala/org/specs2/specification/Fragments.scala
-@@ -11,7 +11,7 @@ import Fragments._
+@@ -12,7 +12,7 @@ import Fragments._
  /**
   * A Fragments object is a list of fragments with a SpecStart and a SpecEnd
   */
--case class Fragments(private val title: Option[SpecName] = None, middle: Seq[Fragment] = Nil, arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
-+case class Fragments(title: Option[SpecName] = None, middle: Seq[Fragment] = Nil, arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
+-case class Fragments(private val title: Option[SpecName] = None, middle: Seq[Fragment] = Vector(), arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
++case class Fragments(title: Option[SpecName] = None, middle: Seq[Fragment] = Vector(), arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
    def fragments: Seq[Fragment] = if (middle.isEmpty && !link.isDefined) Seq() else (start +: middle :+ end)
  
    private def append(e: Fragment) = copy(middle = middle :+ e)
-diff --git a/src/main/scala/org/specs2/specification/FragmentsBuilder.scala b/src/main/scala/org/specs2/specification/FragmentsBuilder.scala
-index 1ba8631..87a1db1 100644
---- a/src/main/scala/org/specs2/specification/FragmentsBuilder.scala
-+++ b/src/main/scala/org/specs2/specification/FragmentsBuilder.scala
-@@ -125,7 +125,8 @@ class FragmentsFragment(fs: =>Fragments) {
- 
-   def ^(other: Fragments) = {
-     other match {
--      case Fragments(t, m, a, Some(l), so)    => fs add other.fragments
-+			//work-around for some weird bug related to default arguments, extractors and AnyVals...
-+      case Fragments(t, m, a, Some(l), so) => fs add other.fragments 
-       case Fragments(Some(t), m, a, None, so) => (fs add other.middle).specTitleIs(t).overrideArgs(a)
-       case Fragments(None, m, a, None, so)    => (fs add other.middle).overrideArgs(a)
-       case _                                  => fs add other.middle
