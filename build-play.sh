@@ -87,7 +87,7 @@ akka() {
   if [ $FRESH ]
   then
     cd build
-    git clone https://github.com/jboner/akka.git
+    git clone https://github.com/akka/akka.git
     cd akka
     git checkout v2.0-RC2
     git apply ../../akka.diff
