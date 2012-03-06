@@ -11,22 +11,22 @@ index 13467e1..ab82962 100644
    (externalResolvers in LsKeys.lsync) := Seq("Akka Repository" at "http://akka.io/repository/")
  
 diff --git a/project/AkkaBuild.scala b/project/AkkaBuild.scala
-index c9f4318..fd452ae 100644
+index c9f4318..98d7705 100644
 --- a/project/AkkaBuild.scala
 +++ b/project/AkkaBuild.scala
-@@ -19,72 +19,76 @@ object AkkaBuild extends Build {
+@@ -19,19 +19,24 @@ object AkkaBuild extends Build {
    lazy val buildSettings = Seq(
      organization := "com.typesafe.akka",
      version      := "2.0-RC2",
 -    scalaVersion := "2.9.1"
--  )
 +    scalaVersion := "2.10.0-virtualized-SNAPSHOT"
-+  )
-+
+   )
+ 
 +  lazy val localScalaSettings = Seq[Setting[_]](
++    //needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
 +    resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
 +   )
- 
++
    lazy val akka = Project(
      id = "akka",
      base = file("."),
@@ -45,14 +45,7 @@ index c9f4318..fd452ae 100644
    )
  
    lazy val actor = Project(
-     id = "akka-actor",
-     base = file("akka-actor"),
-     settings = defaultSettings ++ Seq(
-      autoCompilerPlugins := true,
-      libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
-       scalacOptions += "-P:continuations:enable",
-       // to fix scaladoc generation
-       fullClasspath in doc in Compile <<= fullClasspath in Compile
+@@ -46,45 +51,45 @@ object AkkaBuild extends Build {
      )
    )
  
@@ -135,7 +128,7 @@ index c9f4318..fd452ae 100644
  
    // lazy val cluster = Project(
    //   id = "akka-cluster",
-@@ -108,29 +121,29 @@ object AkkaBuild extends Build {
+@@ -108,29 +113,29 @@ object AkkaBuild extends Build {
    lazy val slf4j = Project(
      id = "akka-slf4j",
      base = file("akka-slf4j"),
@@ -182,7 +175,7 @@ index c9f4318..fd452ae 100644
  
    // lazy val amqp = Project(
    //   id = "akka-amqp",
-@@ -141,89 +154,89 @@ object AkkaBuild extends Build {
+@@ -141,89 +146,89 @@ object AkkaBuild extends Build {
    //   )
    // )
  
@@ -344,7 +337,7 @@ index c9f4318..fd452ae 100644
  
  
    // lazy val spring = Project(
-@@ -235,80 +248,80 @@ object AkkaBuild extends Build {
+@@ -235,80 +240,80 @@ object AkkaBuild extends Build {
    //   )
    // )
  
@@ -490,7 +483,7 @@ index c9f4318..fd452ae 100644
  
    //  lazy val secondTutorial = Project(
    //    id = "akka-tutorial-second",
-@@ -317,17 +330,17 @@ object AkkaBuild extends Build {
+@@ -317,17 +322,17 @@ object AkkaBuild extends Build {
    //    settings = defaultSettings
    //  )
  
@@ -519,7 +512,7 @@ index c9f4318..fd452ae 100644
  
    // Settings
  
-@@ -345,7 +358,7 @@ object AkkaBuild extends Build {
+@@ -345,7 +350,7 @@ object AkkaBuild extends Build {
  
    val defaultExcludedTags = Seq("timing")
  
@@ -528,7 +521,7 @@ index c9f4318..fd452ae 100644
      resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
      resolvers += "Twitter Public Repo" at "http://maven.twttr.com", // This will be going away with com.mongodb.async's next release
      resolvers += "Typesafe Snapshot Repo" at "http://repo.typesafe.com/typesafe/snapshots/", // Used while play-mini is still on RC
-@@ -419,64 +432,64 @@ object AkkaBuild extends Build {
+@@ -419,64 +424,64 @@ object AkkaBuild extends Build {
  object Dependencies {
    import Dependency._
  
@@ -630,7 +623,7 @@ index c9f4318..fd452ae 100644
  }
  
  object Dependency {
-@@ -564,8 +577,8 @@ object Dependency {
+@@ -564,8 +569,8 @@ object Dependency {
      val junit       = "junit"                       % "junit"               % "4.5"        % "test" // Common Public License 1.0
      val logback     = "ch.qos.logback"              % "logback-classic"     % V.Logback    % "test" // EPL 1.0 / LGPL 2.1
      val mockito     = "org.mockito"                 % "mockito-all"         % "1.8.1"      % "test" // MIT
