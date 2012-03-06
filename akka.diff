@@ -14,7 +14,7 @@ diff --git a/project/AkkaBuild.scala b/project/AkkaBuild.scala
 index c9f4318..fd452ae 100644
 --- a/project/AkkaBuild.scala
 +++ b/project/AkkaBuild.scala
-@@ -19,72 +19,85 @@ object AkkaBuild extends Build {
+@@ -19,72 +19,76 @@ object AkkaBuild extends Build {
    lazy val buildSettings = Seq(
      organization := "com.typesafe.akka",
      version      := "2.0-RC2",
@@ -24,16 +24,6 @@ index c9f4318..fd452ae 100644
 +  )
 +
 +  lazy val localScalaSettings = Seq[Setting[_]](
-+    scalaHome <<= (baseDirectory in ThisBuild) { f =>
-+	  val props = new java.util.Properties()
-+	  val pf = f / ".." / ".." / "local.properties"
-+	  IO.load(props, pf)
-+	  val x = props.getProperty("scala.virtualized.home")
-+	  if (x == null)
-+	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
-+	  else Some(file(x))
-+	},
-+    //needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
 +    resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
 +   )
  
@@ -58,9 +48,8 @@ index c9f4318..fd452ae 100644
      id = "akka-actor",
      base = file("akka-actor"),
      settings = defaultSettings ++ Seq(
--      autoCompilerPlugins := true,
--      libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
-+      scalacOptions <+= scalaHome map (_.map(f => "-Xplugin:"+f+"/misc/scala-devel/plugins/continuations.jar").get),
+      autoCompilerPlugins := true,
+      libraryDependencies <+= scalaVersion { v => compilerPlugin("org.scala-lang.plugins" % "continuations" % v) },
        scalacOptions += "-P:continuations:enable",
        // to fix scaladoc generation
        fullClasspath in doc in Compile <<= fullClasspath in Compile

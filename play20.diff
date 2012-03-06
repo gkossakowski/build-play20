@@ -65,7 +65,7 @@ index 84cd6d9..f7a8ceb 100644
  
      val Root = Project(
          "Root",
-@@ -116,23 +116,36 @@ object PlayBuild extends Build {
+@@ -116,23 +116,27 @@ object PlayBuild extends Build {
              publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
              publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
          )
@@ -82,15 +82,6 @@ index 84cd6d9..f7a8ceb 100644
          val buildSbtVersion   = "0.11.2"
  
 +        lazy val localScalaSettings = Seq[Setting[_]](
-+          scalaHome <<= (baseDirectory in ThisBuild) { f =>
-+          val props = new java.util.Properties()
-+          val pf = f / ".." / ".." / ".." / "local.properties"
-+          IO.load(props, pf)
-+          val x = props.getProperty("scala.virtualized.home")
-+          if (x == null)
-+            sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
-+          else Some(file(x))
-+        }
 +        )
 +
          val buildSettings = Defaults.defaultSettings ++ Seq (
