@@ -1,22 +1,5 @@
 #/bin/bash
 
-# Scripts that builds Play 2.0 (and its Scala dependencies)
-# against *local* build of Scala virtualized compiler.
-#
-# In order to use this script you need to build and
-# publish locally Scala virtualized compiler. You find version
-# that is known to work well with Play 2.0 here:
-# https://github.com/gkossakowski/scala/tree/play20
-#
-# After checking it out, run:
-# ant && ant fastdist && ant distpack
-# (cd dists/maven/latest; ant deploy.snapshot.local)
-#
-# Once scala's snapshot is locally deployed you can
-# run this script. In case of problems with sbt's
-# compiler interface, check following script:
-# https://gist.github.com/1643715
-
 set -e
 
 FRESH=1
