@@ -31,6 +31,10 @@ substitute_scala_version() {
   sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g"
 }
 
+substitute_home() {
+  sed "s:__HOME__:$HOME:g"
+}
+
 # http://nbronson.github.com/scala-stm/index.html
 scala_stm() {
   if [ $FRESH ]
@@ -160,7 +164,7 @@ Play20() {
     git clone git://github.com/playframework/Play20.git
     cd Play20/framework
     git checkout 2.0-RC3
-    cat ../../../play20.diff | substitute_scala_version | git apply -
+    cat ../../../play20.diff | substitute_scala_version | substitute_home | git apply -
   else
     cd build/Play20/framework
   fi
