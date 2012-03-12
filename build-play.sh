@@ -27,6 +27,10 @@ alias sbt="sbt @`pwd`/sbt.boot.properties"
 FRESH=1
 mkdir -p build
 
+substitute_scala_version() {
+  sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g"
+}
+
 # http://nbronson.github.com/scala-stm/index.html
 scala_stm() {
   if [ $FRESH ]
@@ -35,7 +39,7 @@ scala_stm() {
     git clone https://github.com/nbronson/scala-stm.git
     cd scala-stm
  	git checkout release-0.4
-    cat ../../scala_stm.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../scala_stm.diff | substitute_scala_version | git apply -
   else
     cd build/scala-stm
   fi
@@ -50,7 +54,7 @@ jerkson() {
     git clone https://github.com/codahale/jerkson.git
     cd jerkson
 	git checkout v0.5.0
-    cat ../../jerkson.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../jerkson.diff | substitute_scala_version | git apply -
   else
     cd build/jerkson
   fi
@@ -65,7 +69,7 @@ scala_arm() {
     git clone https://github.com/jsuereth/scala-arm.git 
     cd scala-arm
     git checkout 1.1
-    cat ../../scala_arm.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../scala_arm.diff | substitute_scala_version | git apply -
   else
     cd build/scala-arm
   fi
@@ -80,7 +84,7 @@ scala_io() {
     git clone https://github.com/jesseeichar/scala-io.git
     cd scala-io
     git checkout 0.2.0
-    cat ../../scala_io.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../scala_io.diff | substitute_scala_version | git apply -
   else
     cd build/scala-io
   fi
@@ -95,7 +99,7 @@ akka() {
     git clone https://github.com/akka/akka.git
     cd akka
     git checkout v2.0-RC2
-    cat ../../akka.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../akka.diff | substitute_scala_version | git apply -
   else
     cd build/akka
   fi
@@ -110,7 +114,7 @@ scalacheck() {
     git clone git://github.com/rickynils/scalacheck.git
     cd scalacheck
     git checkout 1.9
-    cat ../../scalacheck.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../scalacheck.diff | substitute_scala_version | git apply -
   else
     cd build/scalacheck
   fi
@@ -126,7 +130,7 @@ specs2() {
     git clone git://github.com/etorreborre/specs2.git
     cd specs2
     git checkout SPECS2-1.7.1
-    cat ../../specs2.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../specs2.diff | substitute_scala_version | git apply -
   else
     cd build/specs2
   fi
@@ -141,7 +145,7 @@ xsbt() {
     git clone git://github.com/harrah/xsbt.git
     cd xsbt
     git checkout v0.11.2
-    cat ../../xsbt.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../xsbt.diff | substitute_scala_version | git apply -
   else
     cd build/xsbt
   fi
@@ -156,7 +160,7 @@ Play20() {
     git clone git://github.com/playframework/Play20.git
     cd Play20/framework
     git checkout 2.0-RC3
-    cat ../../../play20.diff | sed "s/$SCALA_VERSION_DIFF/$SCALA_VERSION_WANTED/g" | git apply -
+    cat ../../../play20.diff | substitute_scala_version | git apply -
   else
     cd build/Play20/framework
   fi
