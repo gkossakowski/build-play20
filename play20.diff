@@ -65,7 +65,7 @@ index 84cd6d9..f7a8ceb 100644
  
      val Root = Project(
          "Root",
-@@ -116,23 +116,36 @@ object PlayBuild extends Build {
+@@ -116,23 +116,27 @@ object PlayBuild extends Build {
              publish <<= (publish in PlayProject, publish in TemplatesProject, publish in AnormProject, publish in SbtPluginProject, publish in ConsoleProject, publish in PlayTestProject) map { (_,_,_,_,_,_) => },
              publishLocal <<= (publishLocal in PlayProject, publishLocal in TemplatesProject, publishLocal in AnormProject, publishLocal in SbtPluginProject, publishLocal in ConsoleProject, publishLocal in PlayTestProject) map { (_,_,_,_,_,_) => }
          )
@@ -82,15 +82,6 @@ index 84cd6d9..f7a8ceb 100644
          val buildSbtVersion   = "0.11.2"
  
 +        lazy val localScalaSettings = Seq[Setting[_]](
-+          scalaHome <<= (baseDirectory in ThisBuild) { f =>
-+          val props = new java.util.Properties()
-+          val pf = f / ".." / ".." / ".." / "local.properties"
-+          IO.load(props, pf)
-+          val x = props.getProperty("scala.virtualized.home")
-+          if (x == null)
-+            sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
-+          else Some(file(x))
-+        }
 +        )
 +
          val buildSettings = Defaults.defaultSettings ++ Seq (
@@ -141,8 +132,8 @@ index 6f5db46..30b4226 100644
    cross-versioned: true
  
  [repositories]
-+  m2-local: file:///home/namin/.m2/repository
-+  ivy2-local: file:///home/namin/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
++  m2-local: file://__HOME__/.m2/repository
++  ivy2-local: file://__HOME__/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
    local
    maven-local
    typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
@@ -167,8 +158,8 @@ index f3c227c..264fb9b 100644
    cross-versioned: true
  
  [repositories]
-+  m2-local: file:///home/namin/.m2/repository
-+  ivy2-local: file:///home/namin/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
++  m2-local: file://__HOME__/.m2/repository
++  ivy2-local: file://__HOME__/.ivy2/local, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]
    local
    maven-local
    typesafe-ivy-releases: http://repo.typesafe.com/typesafe/ivy-releases/, [organization]/[module]/[revision]/[type]s/[artifact](-[classifier]).[ext]

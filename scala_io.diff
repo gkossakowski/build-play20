@@ -62,20 +62,12 @@ index 902084c..a229a17 100644
      settings(sharedSettings ++ Seq(publishArtifact := false) :_*)
  
    // ----------------------- Samples Settings ----------------------- //
-@@ -41,7 +41,17 @@ object ScalaIoBuild extends Build {
+@@ -41,7 +41,9 @@ object ScalaIoBuild extends Build {
      </licenses>
  
    val sharedSettings = Seq[Setting[_]](
 -// 	scalaHome := Some(file("/Volumes/Box/ScalaProject/scala-full/dists/scala-2.9.2.r25667-b20110921211926")),
-+    scalaHome <<= (baseDirectory in ThisBuild) { f =>
-+	  val props = new java.util.Properties()
-+	  val pf = f / ".." / ".." / "local.properties"
-+	  IO.load(props, pf)
-+	  val x = props.getProperty("scala.virtualized.home")
-+	  if (x == null)
-+	    sys.error("Did you forget to set scala.virtualized.home property in local.properties file? " + pf)
-+	  else Some(file(x))
-+	},
++    scalaHome := None,
 +    //needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
 +    resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository",
      organization := BuildConstants.organization,
