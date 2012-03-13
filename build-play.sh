@@ -85,7 +85,7 @@ akka() {
     cd build
     git clone https://github.com/akka/akka.git
     cd akka
-    git checkout v2.0-RC2
+    git checkout v2.0
     cat ../../akka.diff | substitute_scala_version | git apply -
   else
     cd build/akka
@@ -146,7 +146,7 @@ Play20() {
     cd build
     git clone git://github.com/playframework/Play20.git
     cd Play20/framework
-    git checkout 2.0-RC3
+    git checkout 2.0
     cat ../../../play20.diff | substitute_scala_version | substitute_home | git apply -
   else
     cd build/Play20/framework

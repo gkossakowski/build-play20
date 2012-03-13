@@ -1,5 +1,5 @@
 diff --git a/build.sbt b/build.sbt
-index 13467e1..ab82962 100644
+index a2be7bb..cd51f6a 100644
 --- a/build.sbt
 +++ b/build.sbt
 @@ -1,6 +1,6 @@
@@ -11,14 +11,14 @@ index 13467e1..ab82962 100644
    (externalResolvers in LsKeys.lsync) := Seq("Akka Repository" at "http://akka.io/repository/")
  
 diff --git a/project/AkkaBuild.scala b/project/AkkaBuild.scala
-index c9f4318..98d7705 100644
+index 9fb077c..91d947b 100644
 --- a/project/AkkaBuild.scala
 +++ b/project/AkkaBuild.scala
-@@ -19,19 +19,24 @@ object AkkaBuild extends Build {
+@@ -19,20 +19,25 @@ object AkkaBuild extends Build {
    lazy val buildSettings = Seq(
      organization := "com.typesafe.akka",
-     version      := "2.0-RC2",
--    scalaVersion := "2.9.1"
+     version      := "2.0",
+-    scalaVersion := "2.9.1-1"
 +    scalaVersion := "2.10.0-virtualized-SNAPSHOT"
    )
  
@@ -31,6 +31,7 @@ index c9f4318..98d7705 100644
      id = "akka",
      base = file("."),
      settings = parentSettings ++ Release.settings ++ Unidoc.settings ++ Rstdoc.settings ++ Publish.versionSettings ++ Dist.settings ++ Seq(
+       testMailbox in GlobalScope := System.getProperty("akka.testMailbox", "false").toBoolean,
        parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", "false").toBoolean,
 -      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository",
 -      Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
@@ -38,14 +39,14 @@ index c9f4318..98d7705 100644
 -    ),
 -    aggregate = Seq(actor, testkit, actorTests, remote, slf4j, agent, transactor, mailboxes, zeroMQ, kernel, akkaSbtPlugin, actorMigration, samples, tutorials, docs)
 +      Publish.defaultPublishTo in ThisBuild <<= crossTarget / "repository"
-+      //Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
-+      //Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
++      // Unidoc.unidocExclude := Seq(samples.id, tutorials.id),
++      // Dist.distExclude := Seq(actorTests.id, akkaSbtPlugin.id, docs.id)
 +    ) ++ localScalaSettings,
 +    aggregate = Seq(actor, slf4j)
    )
  
    lazy val actor = Project(
-@@ -46,45 +51,45 @@ object AkkaBuild extends Build {
+@@ -47,45 +52,45 @@ object AkkaBuild extends Build {
      )
    )
  
@@ -128,7 +129,7 @@ index c9f4318..98d7705 100644
  
    // lazy val cluster = Project(
    //   id = "akka-cluster",
-@@ -108,29 +113,29 @@ object AkkaBuild extends Build {
+@@ -109,29 +114,29 @@ object AkkaBuild extends Build {
    lazy val slf4j = Project(
      id = "akka-slf4j",
      base = file("akka-slf4j"),
@@ -175,9 +176,9 @@ index c9f4318..98d7705 100644
  
    // lazy val amqp = Project(
    //   id = "akka-amqp",
-@@ -141,89 +146,89 @@ object AkkaBuild extends Build {
-   //   )
-   // )
+@@ -144,82 +149,82 @@ object AkkaBuild extends Build {
+ 
+   val testMailbox = SettingKey[Boolean]("test-mailbox")
  
 -  lazy val mailboxes = Project(
 -    id = "akka-durable-mailboxes",
@@ -218,8 +219,7 @@ index c9f4318..98d7705 100644
 -    dependencies = Seq(mailboxesCommon % "compile;test->test"),
 -    settings = defaultSettings ++ Seq(
 -      libraryDependencies ++= Dependencies.beanstalkMailbox,
--      testBeanstalkMailbox := false,
--      testOptions in Test <+= testBeanstalkMailbox map { test => Tests.Filter(s => test) }
+-      testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 -    )
 -  )
 +  // lazy val beanstalkMailbox = Project(
@@ -228,8 +228,7 @@ index c9f4318..98d7705 100644
 +  //   dependencies = Seq(mailboxesCommon % "compile;test->test"),
 +  //   settings = defaultSettings ++ Seq(
 +  //     libraryDependencies ++= Dependencies.beanstalkMailbox,
-+  //     testBeanstalkMailbox := false,
-+  //     testOptions in Test <+= testBeanstalkMailbox map { test => Tests.Filter(s => test) }
++  //     testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 +  //   )
 +  // )
  
@@ -250,17 +249,13 @@ index c9f4318..98d7705 100644
 +  //   )
 +  // )
  
--  val testRedisMailbox = SettingKey[Boolean]("test-redis-mailbox")
-+  // val testRedisMailbox = SettingKey[Boolean]("test-redis-mailbox")
- 
 -  lazy val redisMailbox = Project(
 -    id = "akka-redis-mailbox",
 -    base = file("akka-durable-mailboxes/akka-redis-mailbox"),
 -    dependencies = Seq(mailboxesCommon % "compile;test->test"),
 -    settings = defaultSettings ++ Seq(
 -      libraryDependencies ++= Dependencies.redisMailbox,
--      testRedisMailbox := false,
--      testOptions in Test <+= testRedisMailbox map { test => Tests.Filter(s => test) }
+-      testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 -    )
 -  )
 +  // lazy val redisMailbox = Project(
@@ -269,8 +264,7 @@ index c9f4318..98d7705 100644
 +  //   dependencies = Seq(mailboxesCommon % "compile;test->test"),
 +  //   settings = defaultSettings ++ Seq(
 +  //     libraryDependencies ++= Dependencies.redisMailbox,
-+  //     testRedisMailbox := false,
-+  //     testOptions in Test <+= testRedisMailbox map { test => Tests.Filter(s => test) }
++  //     testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 +  //   )
 +  // )
  
@@ -291,9 +285,6 @@ index c9f4318..98d7705 100644
 +  //   )
 +  // )
  
--  val testMongoMailbox = SettingKey[Boolean]("test-mongo-mailbox")
-+  // val testMongoMailbox = SettingKey[Boolean]("test-mongo-mailbox")
- 
 -  lazy val mongoMailbox = Project(
 -    id = "akka-mongo-mailbox",
 -    base = file("akka-durable-mailboxes/akka-mongo-mailbox"),
@@ -301,8 +292,7 @@ index c9f4318..98d7705 100644
 -    settings = defaultSettings ++ Seq(
 -      libraryDependencies ++= Dependencies.mongoMailbox,
 -      ivyXML := Dependencies.mongoMailboxExcludes,
--      testMongoMailbox := false,
--      testOptions in Test <+= testMongoMailbox map { test => Tests.Filter(s => test) }
+-      testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 -    )
 -  )
 +  // lazy val mongoMailbox = Project(
@@ -312,8 +302,7 @@ index c9f4318..98d7705 100644
 +  //   settings = defaultSettings ++ Seq(
 +  //     libraryDependencies ++= Dependencies.mongoMailbox,
 +  //     ivyXML := Dependencies.mongoMailboxExcludes,
-+  //     testMongoMailbox := false,
-+  //     testOptions in Test <+= testMongoMailbox map { test => Tests.Filter(s => test) }
++  //     testOptions in Test <+= testMailbox map { test => Tests.Filter(s => test) }
 +  //   )
 +  // )
  
@@ -337,7 +326,7 @@ index c9f4318..98d7705 100644
  
  
    // lazy val spring = Project(
-@@ -235,80 +240,80 @@ object AkkaBuild extends Build {
+@@ -231,80 +236,80 @@ object AkkaBuild extends Build {
    //   )
    // )
  
@@ -483,7 +472,7 @@ index c9f4318..98d7705 100644
  
    //  lazy val secondTutorial = Project(
    //    id = "akka-tutorial-second",
-@@ -317,17 +322,17 @@ object AkkaBuild extends Build {
+@@ -313,17 +318,17 @@ object AkkaBuild extends Build {
    //    settings = defaultSettings
    //  )
  
@@ -512,39 +501,39 @@ index c9f4318..98d7705 100644
  
    // Settings
  
-@@ -345,7 +350,7 @@ object AkkaBuild extends Build {
+@@ -344,7 +349,7 @@ object AkkaBuild extends Build {
  
    val defaultExcludedTags = Seq("timing")
  
 -  lazy val defaultSettings = baseSettings ++ formatSettings ++ Seq(
 +  lazy val defaultSettings = baseSettings ++ formatSettings ++ localScalaSettings ++ Seq(
      resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
-     resolvers += "Twitter Public Repo" at "http://maven.twttr.com", // This will be going away with com.mongodb.async's next release
-     resolvers += "Typesafe Snapshot Repo" at "http://repo.typesafe.com/typesafe/snapshots/", // Used while play-mini is still on RC
-@@ -419,64 +424,64 @@ object AkkaBuild extends Build {
+ 
+     // compile options
+@@ -416,64 +421,64 @@ object AkkaBuild extends Build {
  object Dependencies {
    import Dependency._
  
 -  val testkit = Seq(Test.scalatest, Test.junit)
-+ //  val testkit = Seq(Test.scalatest, Test.junit)
++  // val testkit = Seq(Test.scalatest, Test.junit)
  
 -  val actorTests = Seq(
 -    Test.junit, Test.scalatest, Test.commonsMath, Test.mockito,
 -    Test.scalacheck, protobuf, jacksonMapper, sjson
 -  )
-+ //  val actorTests = Seq(
-+ //    Test.junit, Test.scalatest, Test.commonsMath, Test.mockito,
-+ //    Test.scalacheck, protobuf, jacksonMapper, sjson
-+ //  )
++  // val actorTests = Seq(
++  //   Test.junit, Test.scalatest, Test.commonsMath, Test.mockito,
++  //   Test.scalacheck, protobuf, jacksonMapper, sjson
++  // )
  
 -  val remote = Seq(
 -    netty, protobuf, sjson, h2Lzf, Test.junit, Test.scalatest,
 -    Test.zookeeper, Test.log4j // needed for ZkBarrier in multi-jvm tests
 -  )
-+ //  val remote = Seq(
-+ //    netty, protobuf, sjson, h2Lzf, Test.junit, Test.scalatest,
-+ //    Test.zookeeper, Test.log4j // needed for ZkBarrier in multi-jvm tests
-+ //  )
++  // val remote = Seq(
++  //   netty, protobuf, sjson, h2Lzf, Test.junit, Test.scalatest,
++  //   Test.zookeeper, Test.log4j // needed for ZkBarrier in multi-jvm tests
++  // )
  
 - val cluster = Seq(Test.junit, Test.scalatest)
 + // val cluster = Seq(Test.junit, Test.scalatest)
@@ -605,32 +594,29 @@ index c9f4318..98d7705 100644
 -  val kernel = Seq(Test.scalatest, Test.junit)
 +  // val kernel = Seq(Test.scalatest, Test.junit)
  
--  // TODO: resolve Jetty version conflict
--  // val sampleCamel = Seq(camelCore, camelSpring, commonsCodec, Runtime.camelJms, Runtime.activemq, Runtime.springJms,
--  //   Test.junit, Test.scalatest, Test.logback)
-+  // // TODO: resolve Jetty version conflict
-+  // // val sampleCamel = Seq(camelCore, camelSpring, commonsCodec, Runtime.camelJms, Runtime.activemq, Runtime.springJms,
-+  // //   Test.junit, Test.scalatest, Test.logback)
+   // TODO: resolve Jetty version conflict
+   // val sampleCamel = Seq(camelCore, camelSpring, commonsCodec, Runtime.camelJms, Runtime.activemq, Runtime.springJms,
+   //   Test.junit, Test.scalatest, Test.logback)
  
 -  val tutorials = Seq(Test.scalatest, Test.junit)
 +  // val tutorials = Seq(Test.scalatest, Test.junit)
  
--  val docs = Seq(Test.scalatest, Test.junit, playMini)
-+  // val docs = Seq(Test.scalatest, Test.junit, playMini)
+-  val docs = Seq(Test.scalatest, Test.junit)
++  // val docs = Seq(Test.scalatest, Test.junit)
  
 -  val zeroMQ = Seq(Test.scalatest, Test.junit, protobuf, Dependency.zeroMQ)
 +  // val zeroMQ = Seq(Test.scalatest, Test.junit, protobuf, Dependency.zeroMQ)
  }
  
  object Dependency {
-@@ -564,8 +569,8 @@ object Dependency {
+@@ -557,8 +562,8 @@ object Dependency {
      val junit       = "junit"                       % "junit"               % "4.5"        % "test" // Common Public License 1.0
      val logback     = "ch.qos.logback"              % "logback-classic"     % V.Logback    % "test" // EPL 1.0 / LGPL 2.1
      val mockito     = "org.mockito"                 % "mockito-all"         % "1.8.1"      % "test" // MIT
--    val scalatest   = "org.scalatest"               %% "scalatest"          % V.Scalatest  % "test" // ApacheV2
--    val scalacheck  = "org.scala-tools.testing"     %% "scalacheck"         % "1.9"        % "test" // New BSD
-+//    val scalatest   = "org.scalatest"               %% "scalatest"          % V.Scalatest  % "test" // ApacheV2
-+//    val scalacheck  = "org.scala-tools.testing"     %% "scalacheck"         % "1.9"        % "test" // New BSD
+-    val scalatest   = "org.scalatest"               % "scalatest_2.9.1"     % V.Scalatest  % "test" // ApacheV2
+-    val scalacheck  = "org.scala-tools.testing"     % "scalacheck_2.9.1"    % "1.9"        % "test" // New BSD
++    // val scalatest   = "org.scalatest"               % "scalatest_2.9.1"     % V.Scalatest  % "test" // ApacheV2
++    // val scalacheck  = "org.scala-tools.testing"     % "scalacheck_2.9.1"    % "1.9"        % "test" // New BSD
      val zookeeper   = "org.apache.hadoop.zookeeper" % "zookeeper"           % V.Zookeeper  % "test" // ApacheV2
      val log4j       = "log4j"                       % "log4j"               % "1.2.14"     % "test" // ApacheV2
    }
