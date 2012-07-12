@@ -1,8 +1,8 @@
 diff --git a/build.sbt b/build.sbt
-index 04bc7d9..7b5ff29 100644
+index b292c8c..d4548ab 100644
 --- a/build.sbt
 +++ b/build.sbt
-@@ -9,7 +9,9 @@ version := "1.7.1"
+@@ -9,7 +9,9 @@ version := "1.9"
  
  organization := "org.specs2"
  
@@ -11,23 +11,25 @@ index 04bc7d9..7b5ff29 100644
 +
 +publishArtifact in (Compile, packageDoc) := false
  
- crossScalaVersions := Seq("2.9.0")
+ crossScalaVersions := Seq("2.9.1-1", "2.9.2-RC2", "2.10.0-M2")
  
-@@ -19,11 +31,10 @@ shellPrompt := { state => System.getProperty("user.name") + "> " }
+@@ -19,12 +21,13 @@ shellPrompt := { state => System.getProperty("user.name") + "> " }
  shellPrompt in ThisBuild := { state => Project.extract(state).currentRef.project + "> " }
  
  /** Dependencies */
--resolvers ++= Seq("snapshots-repo" at "http://scala-tools.org/repo-snapshots", 
--                  "Local Maven Repository" at "file://c:/Documents and Settings/Eric/.m2/repository")
 +resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
++
+ resolvers ++= Seq("releases" at "http://oss.sonatype.org/content/repositories/releases",
+                   "snapshots" at "http://oss.sonatype.org/content/repositories/snapshots")
  
  libraryDependencies <<= scalaVersion { scala_version => Seq(
 -  "org.specs2" %% "specs2-scalaz-core" % "6.0.1",
-+  "org.specs2" % "specs2-scalaz-core_2.9.1" % "6.0.1",
+-  "net.rosien" %% "sniff" % "0.2" % "test",
++  "org.specs2" % "specs2-scalaz-core_2.10.0-M2" % "6.0.1",
    "org.scala-lang" % "scala-compiler" % scala_version % "optional", 
    "org.scala-tools.testing" %% "scalacheck" % "1.9" % "optional", 
    "org.scala-tools.testing" % "test-interface" % "0.5" % "optional", 
-@@ -66,14 +78,14 @@ releaseProcess <<= thisProjectRef apply { ref =>
+@@ -105,14 +108,14 @@ releaseProcess <<= thisProjectRef apply { ref =>
    Seq[ReleasePart](
      initialGitChecks,                     
      checkSnapshotDependencies,    
@@ -44,11 +46,47 @@ index 04bc7d9..7b5ff29 100644
      setNextVersion,                         
      commitNextVersion                       
    )
+diff --git a/project/build.properties b/project/build.properties
+new file mode 100644
+index 0000000..390c1af
+--- /dev/null
++++ b/project/build.properties
+@@ -0,0 +1 @@
++sbt.version=0.11.3
+\ No newline at end of file
+diff --git a/project/plugins.sbt b/project/plugins.sbt
+index 0015c98..790d04a 100644
+--- a/project/plugins.sbt
++++ b/project/plugins.sbt
+@@ -2,13 +2,13 @@ resolvers += Resolver.url("scalasbt", new URL("http://scalasbt.artifactoryonline
+ 
+ resolvers += Resolver.url("sbt-plugin-releases", new URL("http://scalasbt.artifactoryonline.com/scalasbt/sbt-plugin-releases/"))(Resolver.ivyStylePatterns)
+ 
+-addSbtPlugin("com.jsuereth" % "xsbt-gpg-plugin" % "0.5")
++//addSbtPlugin("com.jsuereth" % "xsbt-gpg-plugin" % "0.5")
+ 
+ resolvers ++= Seq("less is" at "http://repo.lessis.me", "coda" at "http://repo.codahale.com")
+ 
+ addSbtPlugin("me.lessis" % "ls-sbt" % "0.1.1")
+ 
+-addSbtPlugin("net.databinder" % "posterous-sbt" % "0.3.2")
++//addSbtPlugin("net.databinder" % "posterous-sbt" % "0.3.2")
+ 
+ resolvers += "gseitz@github.com" at "http://gseitz.github.com/maven/"
+ 
+@@ -16,6 +16,6 @@ addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.4")
+ 
+ resolvers += Classpaths.typesafeResolver
+ 
+-addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse" % "1.5.0")
++//addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse" % "1.5.0")
+ 
+ 
 diff --git a/src/main/scala/org/specs2/reporter/HtmlPrinter.scala b/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
-index d12b539..ddfc980 100644
+index 27c04db..f41a253 100644
 --- a/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
 +++ b/src/main/scala/org/specs2/reporter/HtmlPrinter.scala
-@@ -105,7 +105,7 @@ trait HtmlPrinter {
+@@ -125,7 +125,7 @@ trait HtmlPrinter {
    implicit object HtmlReducer extends Reducer[ExecutedFragment, Seq[HtmlLine]] {
      implicit override def unit(fragment: ExecutedFragment) = Seq(print(fragment))
      /** print an ExecutedFragment and its associated statistics */
@@ -57,23 +95,43 @@ index d12b539..ddfc980 100644
        case start @ ExecutedSpecStart(_,_,_)       => HtmlSpecStart(start)
        case result @ ExecutedResult(_,_,_,_,_)     => HtmlResult(result)
        case text @ ExecutedText(s, _)              => HtmlText(text)
-@@ -132,4 +132,4 @@ case class TreeToc(rootCode: Int, toc: NodeSeq) {
+@@ -152,4 +152,4 @@ case class TreeToc(rootCode: SpecId, toc: NodeSeq) {
        <script>{"""$(function () {	$('#tree').jstree({'core':{'initially_open':['"""+rootCode+"','"+currentCode+"""'], 'animation':200}, 'plugins':['themes', 'html_data']}); });"""}</script>
      </div>
  
 -}
 \ No newline at end of file
 +}
+diff --git a/src/main/scala/org/specs2/runner/JUnitRunner.scala b/src/main/scala/org/specs2/runner/JUnitRunner.scala
+index f6fb36c..b2d83e1 100644
+--- a/src/main/scala/org/specs2/runner/JUnitRunner.scala
++++ b/src/main/scala/org/specs2/runner/JUnitRunner.scala
+@@ -122,7 +122,7 @@ object JUnitRunner {
+   def apply[T <: SpecificationStructure](f: Fragments, props: SystemProperties, console: TextExporting, html: HtmlExporting)(implicit m: ClassManifest[T]) = new JUnitRunner(m.erasure) {
+       override protected lazy val specification = new Specification { def is = f }
+       override protected lazy val properties = props
+-      override def exporters(accept: String => Boolean)(implicit arguments: Arguments): Seq[Exporting] = Seq(console, html)
++      override def exporters(accept: String => Boolean)(implicit arguments: Arguments): Seq[Exporting] = Seq(console: Exporting, html: Exporting)
+   }
+ }
+ /**
+@@ -159,4 +159,4 @@ class JUnitDescriptionsFragments(className: String) extends JUnitDescriptions[Fr
+         case Action(action)             => Some(createDescription(className, label=nodeLabel.toString, testName="action") -> f)
+         case other                      => None
+       }
+-  }
+\ No newline at end of file
++  }
 diff --git a/src/main/scala/org/specs2/specification/Fragments.scala b/src/main/scala/org/specs2/specification/Fragments.scala
-index f1e904c..312de78 100644
+index 69d2adc..6765c88 100644
 --- a/src/main/scala/org/specs2/specification/Fragments.scala
 +++ b/src/main/scala/org/specs2/specification/Fragments.scala
-@@ -12,7 +12,7 @@ import Fragments._
+@@ -9,7 +9,7 @@ import Fragments._
  /**
   * A Fragments object is a list of fragments with a SpecStart and a SpecEnd
   */
 -case class Fragments(private val title: Option[SpecName] = None, middle: Seq[Fragment] = Vector(), arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
 +case class Fragments(title: Option[SpecName] = None, middle: Seq[Fragment] = Vector(), arguments: Arguments = Arguments(), link: Option[HtmlLink] = None, seeOnly: Boolean = false) {
-   def fragments: Seq[Fragment] = if (middle.isEmpty && !link.isDefined) Seq() else (start +: middle :+ end)
+   def fragments: Seq[Fragment] = if (middle.isEmpty && !link.isDefined) Vector() else (start +: middle :+ end)
  
    private def append(e: Fragment) = copy(middle = middle :+ e)

@@ -1,17 +1,19 @@
 diff --git a/build.sbt b/build.sbt
-index 76aa7ca..8a6429b 100644
+index 7b48866..dfe73ce 100644
 --- a/build.sbt
 +++ b/build.sbt
-@@ -5,46 +5,7 @@ organization := "org.scala-tools"
+@@ -5,48 +5,4 @@ organization := "org.scala-tools"
  
- version := "0.4"
+ version := "0.5"
  
 -scalaVersion := "2.9.1"
 -
--crossScalaVersions := Seq("2.9.0-1", "2.9.0", "2.8.2", "2.8.1")
+-crossScalaVersions := Seq("2.9.1", "2.9.0-1", "2.9.0", "2.8.2", "2.8.1")
 -
 -// 2.8.* -> 1.5.1, 2.9.* -> 1.6.1
 -libraryDependencies += ("org.scalatest" %% "scalatest" % "[1.5,)" % "test")
+-
+-libraryDependencies += ("junit" % "junit" % "4.5" % "test")
 -
 -// skip exhaustive tests
 -testOptions += Tests.Argument("-l", "slow")
@@ -27,7 +29,7 @@ index 76aa7ca..8a6429b 100644
 -publishTo <<= (version) { v: String =>
 -    val nexus = "http://nexus.scala-tools.org/content/repositories/"
 -    if (v.trim.endsWith("SNAPSHOT"))
--      Some("snapshots" at nexus + "snapshots/") 
+-      Some("snapshots" at nexus + "snapshots/")
 -    else
 -      Some("releases" at nexus + "releases/")
 -  }
@@ -49,17 +51,16 @@ index 76aa7ca..8a6429b 100644
 -  }
 -
 -credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
-+//needed because Sbt first tries to resolve the dependency and only then uses scalaHome...
-+resolvers += "Local Maven Repository" at Path.userHome.asURL + "/.m2/repository"
-+
 +scalaVersion := "2.10.0-virtualized-SNAPSHOT"
+\ No newline at end of file
 diff --git a/project/build.properties b/project/build.properties
 new file mode 100644
-index 0000000..f4ff7a5
+index 0000000..390c1af
 --- /dev/null
 +++ b/project/build.properties
 @@ -0,0 +1 @@
-+sbt.version=0.11.2
++sbt.version=0.11.3
+\ No newline at end of file
 diff --git a/src/main/scala/scala/concurrent/stm/Ref.scala b/src/main/scala/scala/concurrent/stm/Ref.scala
 index 1e6aa6c..ba6fdd8 100644
 --- a/src/main/scala/scala/concurrent/stm/Ref.scala

@@ -3,7 +3,7 @@
 set -e
 
 SCALA_VERSION_DIFF=2.10.0-virtualized-SNAPSHOT
-SCALA_VERSION_WANTED=2.10.0-M2-0020-geab3b7e4d7-2012-03-06
+SCALA_VERSION_WANTED=2.10.0-M2-0020-geab3b7e4d7-2012-07-12
 
 alias sbt="sbt @`pwd`/sbt.boot.properties"
 
@@ -25,7 +25,7 @@ scala_stm() {
     cd build
     git clone https://github.com/nbronson/scala-stm.git
     cd scala-stm
- 	git checkout release-0.4
+ 	git checkout release-0.5
     cat ../../scala_stm.diff | substitute_scala_version | git apply -
   else
     cd build/scala-stm
@@ -70,7 +70,7 @@ scala_io() {
     cd build
     git clone https://github.com/jesseeichar/scala-io.git
     cd scala-io
-    git checkout 0.2.0
+    git checkout 0.4.0
     cat ../../scala_io.diff | substitute_scala_version | git apply -
   else
     cd build/scala-io
@@ -85,7 +85,7 @@ akka() {
     cd build
     git clone https://github.com/akka/akka.git
     cd akka
-    git checkout v2.0
+    git checkout v2.0.2
     cat ../../akka.diff | substitute_scala_version | git apply -
   else
     cd build/akka
@@ -116,7 +116,7 @@ specs2() {
     cd build
     git clone git://github.com/etorreborre/specs2.git
     cd specs2
-    git checkout SPECS2-1.7.1
+    git checkout SPECS2-1.9
     cat ../../specs2.diff | substitute_scala_version | git apply -
   else
     cd build/specs2
@@ -131,7 +131,7 @@ xsbt() {
     cd build
     git clone git://github.com/harrah/xsbt.git
     cd xsbt
-    git checkout v0.11.2
+    git checkout v0.11.3
     cat ../../xsbt.diff | substitute_scala_version | git apply -
   else
     cd build/xsbt
@@ -146,7 +146,7 @@ Play20() {
     cd build
     git clone git://github.com/playframework/Play20.git
     cd Play20/framework
-    git checkout 2.0
+    git checkout 2.0.2
     cat ../../../play20.diff | substitute_scala_version | substitute_home | git apply -
   else
     cd build/Play20/framework

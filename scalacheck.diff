@@ -32,7 +32,7 @@ diff --git a/project/build.properties b/project/build.properties
 index 9e0f5d8..f4ff7a5 100644
 --- a/project/build.properties
 +++ b/project/build.properties
-@@ -1,7 +1 @@
+@@ -1,7 +1,1 @@
 -project.name=scalacheck
 -project.organization=org.scala-tools.testing
 -project.version=1.9
@@ -40,7 +40,7 @@ index 9e0f5d8..f4ff7a5 100644
 -def.scala.version=2.7.7
 -build.scala.versions=2.9.0
 -project.initialize=false
-+sbt.version=0.11.2
++sbt.version=0.11.3
 diff --git a/project/build/ScalaCheckProject.scala b/project/build/ScalaCheckProject.scala
 deleted file mode 100644
 index aaf5cf3..0000000
